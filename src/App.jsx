@@ -40,7 +40,7 @@ function App() {
   return (
     <Container maxWidth="sm" sx={{ mt: 6 }}>
       <Typography variant="h4" align="center" gutterBottom>
-        French Translator & Text-to-Speech
+        French Translator & Text-to-Speech {API_URL}
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <TextField
