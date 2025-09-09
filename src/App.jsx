@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Container, TextField, Button, Typography, Box } from '@mui/material';
 
@@ -11,14 +10,17 @@ function callBackend(url, payload) {
   return fetch(url, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain', // Sending plain text
     },
-    body: JSON.stringify(payload),
+    body: payload.text, // Sending the raw text
   }).then(response => {
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return response.json();
+    return (async () => { // IIFE
+      if (!response.ok) {
+        throw new Error('Network response was not ok: ' + response.statusText);
+      }
+      const text = await response.text(); // Await the promise
+      return text; // Return the actual text
+    })(); // Immediately invoke the async function
   });
 }
 
@@ -31,7 +33,8 @@ function App() {
     // Replace '/api/translate' with your backend endpoint
     try {
       const data = await callBackend(API_URL, { text: input });
-      setResult(data.result || 'No result returned');
+      console.log("Data received from backend:", data);
+      setResult(data || 'No result returned');
     } catch (error) {
       setResult('Error: ' + error.message);
     }
@@ -44,7 +47,7 @@ function App() {
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <TextField
-          label="Enter URL or Text"
+          label="Enter your Text or URL Here"
           variant="outlined"
           value={input}
           onChange={e => setInput(e.target.value)}
