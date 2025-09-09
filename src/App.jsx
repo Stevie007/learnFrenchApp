@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Container, TextField, Button, Typography, Box } from '@mui/material';
 
 // Global backend API URL
-const API_URL = 'http://localhost:5555/api/translate';
+//const API_URL = 'http://localhost:5555/api/translate';
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 function callBackend(url, payload) {
   // Returns a promise for the backend response
