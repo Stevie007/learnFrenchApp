@@ -30,7 +30,7 @@ function App() {
     // Example usage of callBackend
     // Replace '/api/translate' with your backend endpoint
     try {
-      const data = await callBackend('/api/translate', { text: input });
+      const data = await callBackend(API_URL, { text: input });
       setResult(data.result || 'No result returned');
     } catch (error) {
       setResult('Error: ' + error.message);
