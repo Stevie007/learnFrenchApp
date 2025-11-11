@@ -74,7 +74,7 @@ function App() {
   const handleTranslate = async () => {
     setTranslation("translation started by calling backend: " + formatApiUrl(API_URL_TRANSLATE_TEXT));
     try {
-      const data = await backendGetTextFromUrl(API_URL_TRANSLATE_TEXT, { text: input });
+      const data = await backendGetTextFromUrl(API_URL_TRANSLATE_TEXT, { text: result });
       console.log("Translation received from backend:", data);
       setTranslation(data || 'No translation returned');
     } catch (error) {
@@ -84,7 +84,7 @@ function App() {
 
   const handleGetAudio = async () => {
     try {
-      const url = await backendGetAudio(API_URL_GET_AUDIO_FOR_TEXT, { text: translation });
+      const url = await backendGetAudio(API_URL_GET_AUDIO_FOR_TEXT, { text: result });
       console.log("Audio URL created:", url);
       setAudioUrl(url);
     } catch (error) {
