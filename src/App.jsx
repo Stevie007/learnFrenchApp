@@ -144,7 +144,7 @@ function App() {
 // -----------------------------------------------------------------------------------
 
   return (
-    <Container maxWidth="md" sx={{ mt: 6 }}>
+    <Container maxWidth="md" sx={{ mt: 6, mb: 6 }}>
       <Typography variant="h3" align="center" gutterBottom>
         On Parle Francais - 5 min par jour
         <Typography variant="subtitle1" align="center" gutterBottom sx={{ fontSize: '0.9rem' }}>
@@ -169,17 +169,22 @@ function App() {
           multiline
           minRows={4}
         />
-        <Button variant="contained" onClick={handleTranslate}>
-          Translate
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button variant="contained" onClick={handleTranslate} sx={{ flex: 1 }}>
+            Translate
+          </Button>
+          <Button variant="contained" onClick={handleGetAudio} sx={{ flex: 1 }}>
+            Get Audio (Text-to-Speech)
+          </Button>
+        </Box>
         
         {translationPairs.length > 0 ? (
           <TableContainer component={Paper} sx={{ mt: 2 }}>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '50%' }}>Original (French)</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '50%' }}>Translation (German)</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '50%' }}>Original (Francais)</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '50%' }}>Übersetzung (Deutsch)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -203,9 +208,6 @@ function App() {
           />
         )}
         
-        <Button variant="contained" onClick={handleGetAudio}>
-          Get Audio (Text-to-Speech)
-        </Button>
         {audioUrl && (
           <Box sx={{ mt: 2 }}>
             <audio controls autoPlay src={audioUrl}>
