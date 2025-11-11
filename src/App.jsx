@@ -40,6 +40,7 @@ function App() {
   const handleGetTextFromUrl = async () => {
     // Example usage of backendGetTextFromUrl
     // Replace '/api/translate' with your backend endpoint
+    setResult("Loading text from: " + input + " by calling backend: " + formatApiUrl(API_URL_GET_TEXT_FROM_URL));
     try {
       const data = await backendGetTextFromUrl(API_URL_GET_TEXT_FROM_URL, { text: input });
       console.log("Data received from backend:", data);
