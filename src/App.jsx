@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Container, TextField, Button, Typography, Box } from '@mui/material';
 
+// Global configuration
+const DEBUG_LEVEL = import.meta.env.VITE_DEBUG_LEVEL === 'true';
+
 // Global backend API URL
 //const API_URL = 'http://localhost:5555/api/translate';
 const API_URL_GET_TEXT_FROM_URL = import.meta.env.VITE_BACKEND_GET_TEXT_FROM_URL;
@@ -69,8 +72,9 @@ function App() {
   };
 
   const handleTranslate = async () => {
+    setTranslation("translation started by calling backend: " + formatApiUrl(API_URL_TRANSLATE_TEXT));
     try {
-      const data = await backendGetTextFromUrl(API_URL_TRANSLATE_TEXT, { text: result });
+      const data = await backendGetTextFromUrl(API_URL_TRANSLATE_TEXT, { text: input });
       console.log("Translation received from backend:", data);
       setTranslation(data || 'No translation returned');
     } catch (error) {
@@ -88,10 +92,21 @@ function App() {
     }
   };
 
+
+// -----------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------
+// ----- UI ELEMENTS -----------------------------------------------------------------
+// -----------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------
+
   return (
     <Container maxWidth="md" sx={{ mt: 6 }}>
-      <Typography variant="h4" align="center" gutterBottom>
-        French Translator & Text-to-Speech {formatApiUrl(API_URL_GET_TEXT_FROM_URL)}
+      <Typography variant="h3" align="center" gutterBottom>
+        On Parle Francais - 5 min par jour <br/>
+        (Text Traininer französisch - bring your own text)
+      </Typography>
+      <Typography variant="h6" align="center" gutterBottom>
+        Text Traininer französisch - bring your own text
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <TextField
@@ -107,9 +122,9 @@ function App() {
           label="Text for Translation"
           variant="outlined"
           value={result}
+          onChange={e => setResult(e.target.value)}
           multiline
           minRows={4}
-          InputProps={{ readOnly: false }}
         />
         <Button variant="contained" onClick={handleTranslate}>
           Translate
@@ -131,6 +146,17 @@ function App() {
               Your browser does not support the audio element.
             </audio>
           </Box>
+        )}
+        {DEBUG_LEVEL && (
+          <TextField
+            label="Debug: Backend URLs"
+            variant="outlined"
+            value={`Get Text: ${API_URL_GET_TEXT_FROM_URL}\nTranslate: ${API_URL_TRANSLATE_TEXT}\nAudio: ${API_URL_GET_AUDIO_FOR_TEXT}`}
+            multiline
+            minRows={3}
+            InputProps={{ readOnly: true }}
+            sx={{ mt: 4, backgroundColor: '#f5f5f5' }}
+          />
         )}
       </Box>
     </Container>
