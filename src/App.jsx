@@ -3,7 +3,7 @@ import { Container, TextField, Button, Typography, Box } from '@mui/material';
 
 // Global backend API URL
 //const API_URL = 'http://localhost:5555/api/translate';
-const API_URL_GET_TEXT_FROM_URL = import.meta.env.VITE_BACKEND_FETCH_AND_TRANSLATE;
+const API_URL_GET_TEXT_FROM_URL = import.meta.env.VITE_BACKEND_GET_TEXT_FROM_URL;
 const API_URL_TRANSLATE_TEXT = import.meta.env.VITE_BACKEND_TRANSLATE_TEXT;
 const API_URL_GET_AUDIO_FOR_TEXT = import.meta.env.VITE_BACKEND_GET_AUDIO_FOR_TEXT;
 
