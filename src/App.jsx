@@ -26,10 +26,28 @@ function backendGetTextFromUrl(url, payload) {
   });
 }
 
+function backendGetAudio(url, payload) {
+  // Returns a promise for the backend audio response
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain',
+    },
+    body: payload.text,
+  }).then(async (response) => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok: ' + response.statusText);
+    }
+    const blob = await response.blob(); // Get audio as blob
+    return URL.createObjectURL(blob); // Create URL for audio player
+  });
+}
+
 function App() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
   const [translation, setTranslation] = useState('');
+  const [audioUrl, setAudioUrl] = useState('');
 
   const formatApiUrl = (url) => {
     if (!url) return '';
@@ -60,8 +78,18 @@ function App() {
     }
   };
 
+  const handleGetAudio = async () => {
+    try {
+      const url = await backendGetAudio(API_URL_GET_AUDIO_FOR_TEXT, { text: translation });
+      console.log("Audio URL created:", url);
+      setAudioUrl(url);
+    } catch (error) {
+      console.error('Audio error: ' + error.message);
+    }
+  };
+
   return (
-    <Container maxWidth="sm" sx={{ mt: 6 }}>
+    <Container maxWidth="md" sx={{ mt: 6 }}>
       <Typography variant="h4" align="center" gutterBottom>
         French Translator & Text-to-Speech {formatApiUrl(API_URL_GET_TEXT_FROM_URL)}
       </Typography>
@@ -94,6 +122,16 @@ function App() {
           minRows={4}
           InputProps={{ readOnly: true }}
         />
+        <Button variant="contained" onClick={handleGetAudio}>
+          Get Audio (Text-to-Speech)
+        </Button>
+        {audioUrl && (
+          <Box sx={{ mt: 2 }}>
+            <audio controls autoPlay src={audioUrl}>
+              Your browser does not support the audio element.
+            </audio>
+          </Box>
+        )}
       </Box>
     </Container>
   );
