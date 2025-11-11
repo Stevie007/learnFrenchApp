@@ -3,9 +3,11 @@ import { Container, TextField, Button, Typography, Box } from '@mui/material';
 
 // Global backend API URL
 //const API_URL = 'http://localhost:5555/api/translate';
-const API_URL = import.meta.env.VITE_BACKEND_URL;
+const API_URL_GET_TEXT_FROM_URL = import.meta.env.VITE_BACKEND_FETCH_AND_TRANSLATE;
+const API_URL_TRANSLATE_TEXT = import.meta.env.VITE_BACKEND_TRANSLATE_TEXT;
+const API_URL_GET_AUDIO_FOR_TEXT = import.meta.env.VITE_BACKEND_GET_AUDIO_FOR_TEXT;
 
-function callBackend(url, payload) {
+function backendGetTextFromUrl(url, payload) {
   // Returns a promise for the backend response
   return fetch(url, {
     method: 'POST',
@@ -27,12 +29,19 @@ function callBackend(url, payload) {
 function App() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
+  const [translation, setTranslation] = useState('');
 
-  const handleTranslate = async () => {
-    // Example usage of callBackend
+  const formatApiUrl = (url) => {
+    if (!url) return '';
+    if (url.length <= 33) return url; // 15 + 3 (dots) + 15
+    return url.slice(0, 15) + '...' + url.slice(-15);
+  };
+
+  const handleGetTextFromUrl = async () => {
+    // Example usage of backendGetTextFromUrl
     // Replace '/api/translate' with your backend endpoint
     try {
-      const data = await callBackend(API_URL, { text: input });
+      const data = await backendGetTextFromUrl(API_URL_GET_TEXT_FROM_URL, { text: input });
       console.log("Data received from backend:", data);
       setResult(data || 'No result returned');
     } catch (error) {
@@ -40,27 +49,46 @@ function App() {
     }
   };
 
+  const handleTranslate = async () => {
+    try {
+      const data = await backendGetTextFromUrl(API_URL_TRANSLATE_TEXT, { text: result });
+      console.log("Translation received from backend:", data);
+      setTranslation(data || 'No translation returned');
+    } catch (error) {
+      setTranslation('Error: ' + error.message);
+    }
+  };
+
   return (
     <Container maxWidth="sm" sx={{ mt: 6 }}>
       <Typography variant="h4" align="center" gutterBottom>
-        French Translator & Text-to-Speech {API_URL}
+        French Translator & Text-to-Speech {formatApiUrl(API_URL_GET_TEXT_FROM_URL)}
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <TextField
-          label="Enter your Text or URL Here"
+          label="Enter URL"
           variant="outlined"
           value={input}
           onChange={e => setInput(e.target.value)}
+        />
+        <Button variant="contained" onClick={handleGetTextFromUrl}>
+          Get Text from URL - or enter text in the textbox below directly
+        </Button>
+        <TextField
+          label="Text for Translation"
+          variant="outlined"
+          value={result}
           multiline
-          minRows={2}
+          minRows={4}
+          InputProps={{ readOnly: false }}
         />
         <Button variant="contained" onClick={handleTranslate}>
           Translate
         </Button>
         <TextField
-          label="Result"
+          label="Translation"
           variant="outlined"
-          value={result}
+          value={translation}
           multiline
           minRows={4}
           InputProps={{ readOnly: true }}
