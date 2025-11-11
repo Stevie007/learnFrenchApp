@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, TextField, Button, Typography, Box } from '@mui/material';
+import { Container, TextField, Button, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 
 // Global configuration
 const DEBUG_LEVEL = import.meta.env.VITE_DEBUG_LEVEL === 'true';
@@ -50,12 +50,50 @@ function App() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
   const [translation, setTranslation] = useState('');
+  const [translationPairs, setTranslationPairs] = useState([]);
   const [audioUrl, setAudioUrl] = useState('');
 
   const formatApiUrl = (url) => {
     if (!url) return '';
     if (url.length <= 33) return url; // 15 + 3 (dots) + 15
     return url.slice(0, 15) + '...' + url.slice(-15);
+  };
+
+  const parseTranslationResponse = (response) => {
+    // Parse the backend response into pairs of original and translated text
+    // Split by lines that start with "Original:" or "Translated:"
+    const pairs = [];
+    
+    // Split the response using regex to find "Original:" and "Translated:" markers
+    const sections = response.split(/(?=^Original:|^Translated:)/m);
+    
+    let currentOriginal = '';
+    let currentTranslated = '';
+    
+    for (const section of sections) {
+      const trimmedSection = section.trim();
+      
+      if (trimmedSection.startsWith('Original:')) {
+        // Save previous pair if complete
+        if (currentOriginal && currentTranslated) {
+          pairs.push({ original: currentOriginal, translated: currentTranslated });
+          currentOriginal = '';
+          currentTranslated = '';
+        }
+        // Extract text after "Original:" (preserving internal newlines)
+        currentOriginal = trimmedSection.substring('Original:'.length).trim();
+      } else if (trimmedSection.startsWith('Translated:')) {
+        // Extract text after "Translated:" (preserving internal newlines)
+        currentTranslated = trimmedSection.substring('Translated:'.length).trim();
+      }
+    }
+    
+    // Add the last pair
+    if (currentOriginal && currentTranslated) {
+      pairs.push({ original: currentOriginal, translated: currentTranslated });
+    }
+    
+    return pairs;
   };
 
   const handleGetTextFromUrl = async () => {
@@ -73,12 +111,18 @@ function App() {
 
   const handleTranslate = async () => {
     setTranslation("translation started by calling backend: " + formatApiUrl(API_URL_TRANSLATE_TEXT));
+    setTranslationPairs([]);
     try {
       const data = await backendGetTextFromUrl(API_URL_TRANSLATE_TEXT, { text: result });
       console.log("Translation received from backend:", data);
       setTranslation(data || 'No translation returned');
+      
+      // Parse the response into pairs
+      const pairs = parseTranslationResponse(data);
+      setTranslationPairs(pairs);
     } catch (error) {
       setTranslation('Error: ' + error.message);
+      setTranslationPairs([]);
     }
   };
 
@@ -129,14 +173,37 @@ function App() {
         <Button variant="contained" onClick={handleTranslate}>
           Translate
         </Button>
-        <TextField
-          label="translation result"
-          variant="outlined"
-          value={translation}
-          multiline
-          minRows={4}
-          InputProps={{ readOnly: true }}
-        />
+        
+        {translationPairs.length > 0 ? (
+          <TableContainer component={Paper} sx={{ mt: 2 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold', width: '50%' }}>Original (French)</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '50%' }}>Translation (German)</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {translationPairs.map((pair, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{pair.original}</TableCell>
+                    <TableCell>{pair.translated}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <TextField
+            label="translation result"
+            variant="outlined"
+            value={translation}
+            multiline
+            minRows={4}
+            InputProps={{ readOnly: true }}
+          />
+        )}
+        
         <Button variant="contained" onClick={handleGetAudio}>
           Get Audio (Text-to-Speech)
         </Button>
