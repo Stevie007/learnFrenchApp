@@ -72,7 +72,7 @@ function App() {
           onChange={e => setInput(e.target.value)}
         />
         <Button variant="contained" onClick={handleGetTextFromUrl}>
-          Get Text from URL - or enter text in the textbox below directly
+          Get Text from URL ... or enter text in the box below
         </Button>
         <TextField
           label="Text for Translation"
@@ -86,7 +86,7 @@ function App() {
           Translate
         </Button>
         <TextField
-          label="Translation"
+          label="translation result"
           variant="outlined"
           value={translation}
           multiline
