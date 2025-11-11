@@ -146,11 +146,10 @@ function App() {
   return (
     <Container maxWidth="md" sx={{ mt: 6 }}>
       <Typography variant="h3" align="center" gutterBottom>
-        On Parle Francais - 5 min par jour <br/>
-        (Text Traininer französisch - bring your own text)
-      </Typography>
-      <Typography variant="h6" align="center" gutterBottom>
-        Text Traininer französisch - bring your own text
+        On Parle Francais - 5 min par jour
+        <Typography variant="subtitle1" align="center" gutterBottom sx={{ fontSize: '0.9rem' }}>
+          Text Traininer französisch - bring your own text
+        </Typography>
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <TextField
