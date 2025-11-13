@@ -143,7 +143,7 @@ function App() {
       <Typography variant="h3" align="center" gutterBottom>
         On Parle Francais - 5 min par jour
         <Typography variant="subtitle1" align="center" gutterBottom sx={{ fontSize: '0.9rem' }}>
-          Text Trainer französisch - bring your own text
+          Text Trainer französisch - Limit(Zeichen): {MAX_TEXT_LENGTH}/Übersetzung, {MAX_TEXT_TO_AUDIO_LENGTH}/Audio
         </Typography>
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: '0.875rem' }}>
