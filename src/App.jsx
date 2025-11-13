@@ -133,6 +133,9 @@ function App() {
           variant="outlined"
           value={input}
           onChange={e => setInput(e.target.value)}
+          size="small"
+          InputLabelProps={{ style: { fontSize: '0.875rem' } }}
+          inputProps={{ style: { fontSize: '0.875rem' } }}
         />
         <Button variant="contained" onClick={handleGetTextFromUrl}>
           Get Text from URL ... or enter text in the box below
