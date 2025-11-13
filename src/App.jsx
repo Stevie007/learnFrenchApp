@@ -120,11 +120,11 @@ function App() {
 // -----------------------------------------------------------------------------------
 
   return (
-    <Container maxWidth="md" sx={{ mt: 6, mb: 6 }}>
+    <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }}>
       <Typography variant="h3" align="center" gutterBottom>
         On Parle Francais - 5 min par jour
         <Typography variant="subtitle1" align="center" gutterBottom sx={{ fontSize: '0.9rem' }}>
-          Text Traininer französisch - bring your own text
+          Text Trainer französisch - bring your own text
         </Typography>
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -159,22 +159,22 @@ function App() {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>VOCABULARY</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>ORG (Français)</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>VOCABULARY</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>ORG (Français)</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>TRANSLATED (Deutsch)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {translationTripple.map((tripple, index) => (
                   <TableRow key={index}>
-                    <TableCell>
+                    <TableCell sx={{ fontSize: '0.875rem' }}>
                       {tripple.VOCABULARY && tripple.VOCABULARY.map((vocab, vIndex) => (
                         <div key={vIndex}>
-                          {vocab[0]} = {vocab[1]}
+                          {vocab[0]} → {vocab[1]}
                         </div>
                       ))}
                     </TableCell>
-                    <TableCell>{tripple.ORG}</TableCell>
+                    <TableCell sx={{ fontSize: '1rem' }}>{tripple.ORG}</TableCell>
                     <TableCell>{tripple.TRANSLATED}</TableCell>
                   </TableRow>
                 ))}
