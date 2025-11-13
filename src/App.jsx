@@ -3,6 +3,8 @@ import { Container, TextField, Button, Typography, Box, Table, TableBody, TableC
 
 // Global configuration
 const DEBUG_LEVEL = import.meta.env.VITE_DEBUG_LEVEL === 'true';
+const MAX_TEXT_LENGTH = parseInt(import.meta.env.VITE_MAX_TEXT_LENGTH) || 4000;
+const MAX_TEXT_TO_AUDIO_LENGTH = parseInt(import.meta.env.VITE_MAX_TEXT_TO_AUDIO_LENGTH) || 4000;
 
 // Global backend API URL
 //const API_URL = 'http://localhost:5555/api/translate';
@@ -32,12 +34,20 @@ function backendGetTextFromUrl(url, payload) {
 
 function backendGetAudio(url, payload) {
   // Returns a promise for the backend audio response
+  let payloadText = payload.text;
+  
+  if (payloadText.length > MAX_TEXT_TO_AUDIO_LENGTH) {
+    console.error(`Payload length (${payloadText.length}) exceeds maximum (${MAX_TEXT_TO_AUDIO_LENGTH}). Truncating.`);
+    const warningMsg = " ... MAXIMUM LENGHT EXEEDED - STOP HERE";
+    payloadText = payloadText.substring(0, MAX_TEXT_TO_AUDIO_LENGTH - warningMsg.length) + warningMsg;
+  }
+  
   return fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'text/plain',
     },
-    body: payload.text,
+    body: payloadText,
   }).then(async (response) => {
     if (!response.ok) {
       throw new Error('Network response was not ok: ' + response.statusText);
@@ -89,9 +99,9 @@ function App() {
     setTranslationTripple([]);
     try {
       let textToTranslate = result;
-      const warningMessage = " ... SEULEMENT 2000 CHAR SONT TRADUIT!";
-      if (textToTranslate.length > 2000) {
-        textToTranslate = textToTranslate.substring(0, 2000 - warningMessage.length) + warningMessage;
+      const warningMessage = ` ... SEULEMENT ${MAX_TEXT_LENGTH} CHAR SONT TRADUIT!`;
+      if (textToTranslate.length > MAX_TEXT_LENGTH) {
+        textToTranslate = textToTranslate.substring(0, MAX_TEXT_LENGTH - warningMessage.length) + warningMessage;
       }
       console.log("transvocab - length of text to translate:", textToTranslate.length);
       console.log("transvocab - text to translate:", textToTranslate);
