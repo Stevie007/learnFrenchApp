@@ -88,7 +88,12 @@ function App() {
     setTranslation("transvocab started by calling backend: " + formatApiUrl(API_URL_TRANSLATE_VOCAB));
     setTranslationTripple([]);
     try {
-      const data = await backendGetTextFromUrl(API_URL_TRANSLATE_VOCAB, { text: result });
+      let textToTranslate = result;
+      if (textToTranslate.length > 2000) {
+        textToTranslate = textToTranslate.substring(0, 2000) + " ... SEULEMENT 2000 CHAR SONT TRADUIT!";
+      }
+      
+      const data = await backendGetTextFromUrl(API_URL_TRANSLATE_VOCAB, { text: textToTranslate });
       console.log("Transvocab received from backend:", data);
       setTranslation(data || 'No translation returned');
       
@@ -206,7 +211,7 @@ function App() {
           <TextField
             label="Debug: Backend URLs"
             variant="outlined"
-            value={`Get Text: ${API_URL_GET_TEXT_FROM_URL}\nTranslate: ${API_URL_TRANSLATE_TEXT}\nAudio: ${API_URL_GET_AUDIO_FOR_TEXT}`}
+            value={`Get Text: ${API_URL_GET_TEXT_FROM_URL}\nTranslate: ${API_URL_TRANSLATE_VOCAB}\nAudio: ${API_URL_GET_AUDIO_FOR_TEXT}`}
             multiline
             minRows={3}
             InputProps={{ readOnly: true }}
