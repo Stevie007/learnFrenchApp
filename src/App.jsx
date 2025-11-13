@@ -96,8 +96,8 @@ function App() {
       console.log("transvocab - length of text to translate:", textToTranslate.length);
       console.log("transvocab - text to translate:", textToTranslate);
       
-      // const data = await backendGetTextFromUrl(API_URL_TRANSLATE_VOCAB, { text: textToTranslate });
-      const data = "empty"; // TEMPORARY DISABLE CALL TO BACKEND
+      const data = await backendGetTextFromUrl(API_URL_TRANSLATE_VOCAB, { text: textToTranslate });
+      //const data = "empty"; // TEMPORARY DISABLE CALL TO BACKEND
       console.log("Transvocab received from backend:", data);
       setTranslation(data || 'No translation returned');
       
