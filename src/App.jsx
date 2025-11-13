@@ -166,7 +166,7 @@ function App() {
               </TableHead>
               <TableBody>
                 {translationTripple.map((tripple, index) => (
-                  <TableRow key={index}>
+                  <TableRow key={index} sx={{ '& td': { borderBottom: '1px solid #e0e0e0' } }}>
                     <TableCell sx={{ fontSize: '0.875rem' }}>
                       {tripple.VOCABULARY && tripple.VOCABULARY.map((vocab, vIndex) => (
                         <div key={vIndex}>
