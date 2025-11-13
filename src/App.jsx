@@ -89,10 +89,12 @@ function App() {
     setTranslationTripple([]);
     try {
       let textToTranslate = result;
+      const warningMessage = " ... SEULEMENT 2000 CHAR SONT TRADUIT!";
       if (textToTranslate.length > 2000) {
-        textToTranslate = textToTranslate.substring(0, 2000) + " ... SEULEMENT 2000 CHAR SONT TRADUIT!";
+        textToTranslate = textToTranslate.substring(0, 2000 - warningMessage.length) + warningMessage;
       }
-
+      console.log("transvocab - length of text to translate:", textToTranslate.length);
+      
       const data = await backendGetTextFromUrl(API_URL_TRANSLATE_VOCAB, { text: textToTranslate });
       console.log("Transvocab received from backend:", data);
       setTranslation(data || 'No translation returned');
