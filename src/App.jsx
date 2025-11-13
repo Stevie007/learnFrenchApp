@@ -127,7 +127,7 @@ function App() {
           Text Trainer französisch - bring your own text
         </Typography>
       </Typography>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: '0.875rem' }}>
         <TextField
           label="Enter URL"
           variant="outlined"
