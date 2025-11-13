@@ -8,6 +8,7 @@ const DEBUG_LEVEL = import.meta.env.VITE_DEBUG_LEVEL === 'true';
 //const API_URL = 'http://localhost:5555/api/translate';
 const API_URL_GET_TEXT_FROM_URL = import.meta.env.VITE_BACKEND_GET_TEXT_FROM_URL;
 const API_URL_TRANSLATE_TEXT = import.meta.env.VITE_BACKEND_TRANSLATE_TEXT;
+const API_URL_TRANSLATE_VOCAB = import.meta.env.VITE_BACKEND_TRANSLATE_VOCAB;
 const API_URL_GET_AUDIO_FOR_TEXT = import.meta.env.VITE_BACKEND_GET_AUDIO_FOR_TEXT;
 
 function backendGetTextFromUrl(url, payload) {
@@ -50,7 +51,7 @@ function App() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
   const [translation, setTranslation] = useState('');
-  const [translationPairs, setTranslationPairs] = useState([]);
+  const [translationTripple, setTranslationTripple] = useState([]);
   const [audioUrl, setAudioUrl] = useState('');
 
   const formatApiUrl = (url) => {
@@ -59,41 +60,15 @@ function App() {
     return url.slice(0, 15) + '...' + url.slice(-15);
   };
 
-  const parseTranslationResponse = (response) => {
-    // Parse the backend response into pairs of original and translated text
-    // Split by lines that start with "Original:" or "Translated:"
-    const pairs = [];
-    
-    // Split the response using regex to find "Original:" and "Translated:" markers
-    const sections = response.split(/(?=^Original:|^Translated:)/m);
-    
-    let currentOriginal = '';
-    let currentTranslated = '';
-    
-    for (const section of sections) {
-      const trimmedSection = section.trim();
-      
-      if (trimmedSection.startsWith('Original:')) {
-        // Save previous pair if complete
-        if (currentOriginal && currentTranslated) {
-          pairs.push({ original: currentOriginal, translated: currentTranslated });
-          currentOriginal = '';
-          currentTranslated = '';
-        }
-        // Extract text after "Original:" (preserving internal newlines)
-        currentOriginal = trimmedSection.substring('Original:'.length).trim();
-      } else if (trimmedSection.startsWith('Translated:')) {
-        // Extract text after "Translated:" (preserving internal newlines)
-        currentTranslated = trimmedSection.substring('Translated:'.length).trim();
-      }
+  const parseTranslationResponseTripple = (response) => {
+    // Parse JSON response with ORG, TRANSLATED, and VOCABULARY fields
+    try {
+      const tripples = JSON.parse(response);
+      return tripples;
+    } catch (error) {
+      console.error('Failed to parse vocabulary response:', error);
+      return [];
     }
-    
-    // Add the last pair
-    if (currentOriginal && currentTranslated) {
-      pairs.push({ original: currentOriginal, translated: currentTranslated });
-    }
-    
-    return pairs;
   };
 
   const handleGetTextFromUrl = async () => {
@@ -109,22 +84,23 @@ function App() {
     }
   };
 
-  const handleTranslate = async () => {
-    setTranslation("translation started by calling backend: " + formatApiUrl(API_URL_TRANSLATE_TEXT));
-    setTranslationPairs([]);
+  const handleTransVocab = async () => {
+    setTranslation("transvocab started by calling backend: " + formatApiUrl(API_URL_TRANSLATE_VOCAB));
+    setTranslationTripple([]);
     try {
-      const data = await backendGetTextFromUrl(API_URL_TRANSLATE_TEXT, { text: result });
-      console.log("Translation received from backend:", data);
+      const data = await backendGetTextFromUrl(API_URL_TRANSLATE_VOCAB, { text: result });
+      console.log("Transvocab received from backend:", data);
       setTranslation(data || 'No translation returned');
       
-      // Parse the response into pairs
-      const pairs = parseTranslationResponse(data);
-      setTranslationPairs(pairs);
+      // Parse the response into tripple
+      const tripple = parseTranslationResponseTripple(data);
+      setTranslationTripple(tripple);
     } catch (error) {
       setTranslation('Error: ' + error.message);
-      setTranslationPairs([]);
+      setTranslationTripple([]);
     }
   };
+
 
   const handleGetAudio = async () => {
     try {
@@ -170,7 +146,7 @@ function App() {
           minRows={4}
         />
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button variant="contained" onClick={handleTranslate} sx={{ flex: 1 }}>
+          <Button variant="contained" onClick={handleTransVocab} sx={{ flex: 1 }}>
             Translate
           </Button>
           <Button variant="contained" onClick={handleGetAudio} sx={{ flex: 1 }}>
@@ -178,20 +154,28 @@ function App() {
           </Button>
         </Box>
         
-        {translationPairs.length > 0 ? (
+        {translationTripple.length > 0 ? (
           <TableContainer component={Paper} sx={{ mt: 2 }}>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '50%' }}>Original (Francais)</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '50%' }}>Übersetzung (Deutsch)</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>VOCABULARY</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>ORG (Français)</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>TRANSLATED (Deutsch)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {translationPairs.map((pair, index) => (
+                {translationTripple.map((tripple, index) => (
                   <TableRow key={index}>
-                    <TableCell>{pair.original}</TableCell>
-                    <TableCell>{pair.translated}</TableCell>
+                    <TableCell>
+                      {tripple.VOCABULARY && tripple.VOCABULARY.map((vocab, vIndex) => (
+                        <div key={vIndex}>
+                          {vocab[0]} = {vocab[1]}
+                        </div>
+                      ))}
+                    </TableCell>
+                    <TableCell>{tripple.ORG}</TableCell>
+                    <TableCell>{tripple.TRANSLATED}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
