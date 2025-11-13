@@ -167,15 +167,15 @@ function App() {
               <TableBody>
                 {translationTripple.map((tripple, index) => (
                   <TableRow key={index} sx={{ '& td': { borderBottom: '1px solid #e0e0e0' } }}>
-                    <TableCell sx={{ fontSize: '0.875rem' }}>
+                    <TableCell sx={{ fontSize: '0.875rem', backgroundColor: '#e6f2ff' }}>
                       {tripple.VOCABULARY && tripple.VOCABULARY.map((vocab, vIndex) => (
                         <div key={vIndex}>
                           {vocab[0]} → {vocab[1]}
                         </div>
                       ))}
                     </TableCell>
-                    <TableCell sx={{ fontSize: '1rem' }}>{tripple.ORG}</TableCell>
-                    <TableCell>{tripple.TRANSLATED}</TableCell>
+                    <TableCell sx={{ fontSize: '1rem', backgroundColor: '#ffffff' }}>{tripple.ORG}</TableCell>
+                    <TableCell sx={{ backgroundColor: '#ffe6e6' }}>{tripple.TRANSLATED}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
