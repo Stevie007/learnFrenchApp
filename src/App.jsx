@@ -6,6 +6,7 @@ import VocabularyModule from './VocabularyModule';
 // Global configuration
 const MAX_TEXT_LENGTH = parseInt(import.meta.env.VITE_MAX_TEXT_LENGTH) || 4000;
 const MAX_TEXT_TO_AUDIO_LENGTH = parseInt(import.meta.env.VITE_MAX_TEXT_TO_AUDIO_LENGTH) || 4000;
+const TOP_MARGIN = '25px'; // Adjust this value to change the app's vertical position
 
 function App() {
   const [activeTab, setActiveTab] = useState(0);
@@ -79,7 +80,7 @@ function App() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }}>
+    <Container maxWidth="lg" sx={{ mt: TOP_MARGIN, mb: 6 }}>
       <Typography variant="h3" align="center" gutterBottom>
         On Parle Français - 5 min par jour
         <Typography variant="subtitle1" align="center" gutterBottom sx={{ fontSize: '0.9rem' }}>
@@ -91,8 +92,20 @@ function App() {
       {/* Tab Navigation */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={activeTab} onChange={handleTabChange} centered>
-          <Tab label="Text Translation" />
-          <Tab label="Vocabulary Training" />
+          <Tab 
+            label="Text Translation" 
+            sx={{ 
+              backgroundColor: '#e6f2ff',
+              '&.Mui-selected': { backgroundColor: '#cce5ff' }
+            }} 
+          />
+          <Tab 
+            label="Vocabulary Training" 
+            sx={{ 
+              backgroundColor: '#fff4e6',
+              '&.Mui-selected': { backgroundColor: '#ffe8cc' }
+            }} 
+          />
         </Tabs>
       </Box>
 
