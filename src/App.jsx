@@ -1,238 +1,110 @@
-import React, { useState } from 'react';
-import { Container, TextField, Button, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Container, Typography, Box, Tabs, Tab } from '@mui/material';
+import TranslationModule from './TranslationModule';
+import VocabularyModule from './VocabularyModule';
 
 // Global configuration
-const DEBUG_LEVEL = import.meta.env.VITE_DEBUG_LEVEL === 'true';
 const MAX_TEXT_LENGTH = parseInt(import.meta.env.VITE_MAX_TEXT_LENGTH) || 4000;
 const MAX_TEXT_TO_AUDIO_LENGTH = parseInt(import.meta.env.VITE_MAX_TEXT_TO_AUDIO_LENGTH) || 4000;
 
-// Global backend API URL
-//const API_URL = 'http://localhost:5555/api/translate';
-const API_URL_GET_TEXT_FROM_URL = import.meta.env.VITE_BACKEND_GET_TEXT_FROM_URL;
-const API_URL_TRANSLATE_TEXT = import.meta.env.VITE_BACKEND_TRANSLATE_TEXT;
-const API_URL_TRANSLATE_VOCAB = import.meta.env.VITE_BACKEND_TRANSLATE_VOCAB;
-const API_URL_GET_AUDIO_FOR_TEXT = import.meta.env.VITE_BACKEND_GET_AUDIO_FOR_TEXT;
-
-function backendGetTextFromUrl(url, payload) {
-  // Returns a promise for the backend response
-  return fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'text/plain', // Sending plain text
-    },
-    body: payload.text, // Sending the raw text
-  }).then(response => {
-    return (async () => { // IIFE
-      if (!response.ok) {
-        throw new Error('Network response was not ok: ' + response.statusText);
-      }
-      const text = await response.text(); // Await the promise
-      return text; // Return the actual text
-    })(); // Immediately invoke the async function
-  });
-}
-
-function backendGetAudio(url, payload) {
-  // Returns a promise for the backend audio response
-  let payloadText = payload.text;
-  
-  if (payloadText.length > MAX_TEXT_TO_AUDIO_LENGTH) {
-    console.error(`Payload length (${payloadText.length}) exceeds maximum (${MAX_TEXT_TO_AUDIO_LENGTH}). Truncating.`);
-    const warningMsg = " ... MAXIMUM LENGHT EXEEDED - STOP HERE";
-    payloadText = payloadText.substring(0, MAX_TEXT_TO_AUDIO_LENGTH - warningMsg.length) + warningMsg;
-  }
-  
-  return fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'text/plain',
-    },
-    body: payloadText,
-  }).then(async (response) => {
-    if (!response.ok) {
-      throw new Error('Network response was not ok: ' + response.statusText);
-    }
-    const blob = await response.blob(); // Get audio as blob
-    return URL.createObjectURL(blob); // Create URL for audio player
-  });
-}
-
 function App() {
-  const [input, setInput] = useState('');
-  const [result, setResult] = useState('');
-  const [translation, setTranslation] = useState('');
-  const [translationTripple, setTranslationTripple] = useState([]);
-  const [audioUrl, setAudioUrl] = useState('');
+  const [activeTab, setActiveTab] = useState(0);
+  const [vocabularyList, setVocabularyList] = useState([]);
+  const [username, setUsername] = useState('');
 
-  const formatApiUrl = (url) => {
-    if (!url) return '';
-    if (url.length <= 33) return url; // 15 + 3 (dots) + 15
-    return url.slice(0, 15) + '...' + url.slice(-15);
-  };
-
-  const parseTranslationResponseTripple = (response) => {
-    // Parse JSON response with ORG, TRANSLATED, and VOCABULARY fields
-    try {
-      const tripples = JSON.parse(response);
-      return tripples;
-    } catch (error) {
-      console.error('Failed to parse vocabulary response:', error);
-      return [];
-    }
-  };
-
-  const handleGetTextFromUrl = async () => {
-    // Example usage of backendGetTextFromUrl
-    // Replace '/api/translate' with your backend endpoint
-    setResult("Loading text from: " + input + " by calling backend: " + formatApiUrl(API_URL_GET_TEXT_FROM_URL));
-    try {
-      const data = await backendGetTextFromUrl(API_URL_GET_TEXT_FROM_URL, { text: input });
-      console.log("Data received from backend:", data);
-      setResult(data || 'No result returned');
-    } catch (error) {
-      setResult('Error: ' + error.message);
-    }
-  };
-
-  const handleTransVocab = async () => {
-    setTranslation("transvocab started by calling backend: " + formatApiUrl(API_URL_TRANSLATE_VOCAB));
-    setTranslationTripple([]);
-    try {
-      let textToTranslate = result;
-      const warningMessage = ` ... SEULEMENT ${MAX_TEXT_LENGTH} CHAR SONT TRADUIT!`;
-      if (textToTranslate.length > MAX_TEXT_LENGTH) {
-        textToTranslate = textToTranslate.substring(0, MAX_TEXT_LENGTH - warningMessage.length) + warningMessage;
+  // Extract username from Basic Auth header
+  useEffect(() => {
+    const extractUsername = async () => {
+      try {
+        // Try to get from a test request with credentials
+        const response = await fetch(window.location.href, {
+          method: 'HEAD',
+          credentials: 'include'
+        });
+        
+        // Check if Authorization header is available (won't work in browser due to CORS)
+        // Alternative: Parse from a cookie or session if AWS Amplify sets one
+        
+        // For Basic Auth, we need to decode from the request
+        // Since browsers don't expose auth headers to JS, we'll use a backend endpoint
+        // Or store in localStorage after first login
+        
+        // Fallback: Check localStorage
+        const storedUser = localStorage.getItem('learnFrenchUser');
+        if (storedUser) {
+          setUsername(storedUser);
+        } else {
+          // Prompt user to enter username (will be saved for future sessions)
+          const user = prompt('Please enter your username:');
+          if (user) {
+            setUsername(user);
+            localStorage.setItem('learnFrenchUser', user);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to extract username:', error);
+        // Fallback to prompt
+        const storedUser = localStorage.getItem('learnFrenchUser');
+        if (storedUser) {
+          setUsername(storedUser);
+        } else {
+          const user = prompt('Please enter your username:');
+          if (user) {
+            setUsername(user);
+            localStorage.setItem('learnFrenchUser', user);
+          }
+        }
       }
-      console.log("transvocab - length of text to translate:", textToTranslate.length);
-      console.log("transvocab - text to translate:", textToTranslate);
-      
-      const data = await backendGetTextFromUrl(API_URL_TRANSLATE_VOCAB, { text: textToTranslate });
-      //const data = "empty"; // TEMPORARY DISABLE CALL TO BACKEND
-      console.log("Transvocab received from backend:", data);
-      setTranslation(data || 'No translation returned');
-      
-      // Parse the response into tripple
-      const tripple = parseTranslationResponseTripple(data);
-      setTranslationTripple(tripple);
-    } catch (error) {
-      setTranslation('Error: ' + error.message);
-      setTranslationTripple([]);
+    };
+    
+    extractUsername();
+  }, []);
+
+  // Load vocabulary from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('learnFrenchVocabulary');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setVocabularyList(parsed);
+        console.log('Loaded vocabulary from localStorage:', parsed.length, 'items');
+      } catch (error) {
+        console.error('Failed to parse vocabulary from localStorage:', error);
+      }
     }
+  }, []);
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
   };
-
-
-  const handleGetAudio = async () => {
-    try {
-      const url = await backendGetAudio(API_URL_GET_AUDIO_FOR_TEXT, { text: result });
-      console.log("Audio URL created:", url);
-      setAudioUrl(url);
-    } catch (error) {
-      console.error('Audio error: ' + error.message);
-    }
-  };
-
-
-// -----------------------------------------------------------------------------------
-// -----------------------------------------------------------------------------------
-// ----- UI ELEMENTS -----------------------------------------------------------------
-// -----------------------------------------------------------------------------------
-// -----------------------------------------------------------------------------------
 
   return (
     <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }}>
       <Typography variant="h3" align="center" gutterBottom>
-        On Parle Francais - 5 min par jour
+        On Parle Français - 5 min par jour
         <Typography variant="subtitle1" align="center" gutterBottom sx={{ fontSize: '0.9rem' }}>
           Text Trainer französisch - Limit(Zeichen): {MAX_TEXT_LENGTH}/Übersetzung, {MAX_TEXT_TO_AUDIO_LENGTH}/Audio
+          - {username && <span style={{ fontWeight: 'bold', color: '#0055A4' }}>User: {username} </span>}
         </Typography>
       </Typography>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: '0.875rem' }}>
-        <TextField
-          label="Enter URL"
-          variant="outlined"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          size="small"
-          InputLabelProps={{ style: { fontSize: '0.875rem' } }}
-          inputProps={{ style: { fontSize: '0.875rem' } }}
-        />
-        <Button variant="contained" onClick={handleGetTextFromUrl}>
-          Get Text from URL ... or enter text in the box below
-        </Button>
-        <TextField
-          label="Text for Translation"
-          variant="outlined"
-          value={result}
-          onChange={e => setResult(e.target.value)}
-          multiline
-          minRows={4}
-        />
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button variant="contained" onClick={handleTransVocab} sx={{ flex: 1 }}>
-            Translate
-          </Button>
-          <Button variant="contained" onClick={handleGetAudio} sx={{ flex: 1 }}>
-            Get Audio (Text-to-Speech)
-          </Button>
-        </Box>
-        
-        {translationTripple.length > 0 ? (
-          <TableContainer component={Paper} sx={{ mt: 2 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>VOCABULARY</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>ORG (Français)</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>TRANSLATED (Deutsch)</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {translationTripple.map((tripple, index) => (
-                  <TableRow key={index} sx={{ '& td': { borderBottom: '1px solid #e0e0e0' } }}>
-                    <TableCell sx={{ fontSize: '0.875rem', backgroundColor: '#e6f2ff' }}>
-                      {tripple.VOCABULARY && tripple.VOCABULARY.map((vocab, vIndex) => (
-                        <div key={vIndex}>
-                          {vocab[0]} → {vocab[1]}
-                        </div>
-                      ))}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: '1rem', backgroundColor: '#ffffff' }}>{tripple.ORG}</TableCell>
-                    <TableCell sx={{ backgroundColor: '#ffe6e6' }}>{tripple.TRANSLATED}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : (
-          <TextField
-            label="translation result"
-            variant="outlined"
-            value={translation}
-            multiline
-            minRows={4}
-            InputProps={{ readOnly: true }}
-          />
-        )}
-        
-        {audioUrl && (
-          <Box sx={{ mt: 2 }}>
-            <audio controls autoPlay src={audioUrl}>
-              Your browser does not support the audio element.
-            </audio>
-          </Box>
-        )}
-        {DEBUG_LEVEL && (
-          <TextField
-            label="Debug: Backend URLs"
-            variant="outlined"
-            value={`Get Text: ${API_URL_GET_TEXT_FROM_URL}\nTranslate: ${API_URL_TRANSLATE_VOCAB}\nAudio: ${API_URL_GET_AUDIO_FOR_TEXT}`}
-            multiline
-            minRows={3}
-            InputProps={{ readOnly: true }}
-            sx={{ mt: 4, backgroundColor: '#f5f5f5' }}
-          />
-        )}
+
+      {/* Tab Navigation */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs value={activeTab} onChange={handleTabChange} centered>
+          <Tab label="Text Translation" />
+          <Tab label="Vocabulary Training" />
+        </Tabs>
       </Box>
+
+      {/* Tab Content */}
+      {activeTab === 0 && <TranslationModule vocabularyList={vocabularyList} username={username} />}
+      {activeTab === 1 && (
+        <VocabularyModule 
+          vocabularyList={vocabularyList} 
+          setVocabularyList={setVocabularyList}
+          username={username}
+        />
+      )}
     </Container>
   );
 }
