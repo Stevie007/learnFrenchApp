@@ -25,12 +25,12 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
   // State for tracking thumb feedback
   const [thumbFeedback, setThumbFeedback] = useState({}); // { vocID: 'up' | 'down' }
   
-  // Update source when translation URL changes
+  // Update source when translation URL changes, but only if source is empty
   useEffect(() => {
-    if (currentTranslationUrl) {
+    if (currentTranslationUrl && !source) {
       setSource(currentTranslationUrl);
     }
-  }, [currentTranslationUrl]);
+  }, [currentTranslationUrl, source]);
 
   const handleSave = async () => {
     if (!textFr.trim() || !textDe.trim()) {
