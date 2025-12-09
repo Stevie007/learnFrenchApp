@@ -16,7 +16,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
   
   // State for Review Vocabulary controls
   const [filterOption, setFilterOption] = useState('onlyNew');
-  const [countValue, setCountValue] = useState('-');
+  const [countValue, setCountValue] = useState('20');
   
   // State for Edit Dialog
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -330,20 +330,19 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>Français</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>Deutsch</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '8%', textAlign: 'center' }}>Stage</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '8%', textAlign: 'center' }}>Order</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Français</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Deutsch</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%', textAlign: 'center' }}>Review</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '6%', textAlign: 'center' }}>Stage</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '16%' }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {vocabularyList.map((vocab, index) => (
                   <TableRow key={vocab.vocID}>
-                    <TableCell>{vocab.textFr}</TableCell>
-                    <TableCell>{vocab.textDe}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}>{vocab.stage || 1}</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <TableCell sx={{ textAlign: 'center' }}>
+                      <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
                         <IconButton 
                           size="small" 
                           onClick={() => handleMoveUp(index)}
@@ -360,10 +359,16 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
                         >
                           <ArrowDownwardIcon fontSize="small" />
                         </IconButton>
+                      </Box>
+                    </TableCell>
+                    <TableCell>{vocab.textFr}</TableCell>
+                    <TableCell>{vocab.textDe}</TableCell>
+                    <TableCell sx={{ textAlign: 'center' }}>
+                      <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
                         <IconButton 
                           size="small" 
                           onClick={() => handleThumbUp(vocab)}
-                          title="Good (increase stage)"
+                          title="Richtig"
                           sx={{ 
                             color: thumbFeedback[vocab.vocID] === 'up' ? 'green' : 'inherit'
                           }}
@@ -373,13 +378,18 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
                         <IconButton 
                           size="small" 
                           onClick={() => handleThumbDown(vocab)}
-                          title="Needs practice (decrease stage)"
+                          title="Erneut üben"
                           sx={{ 
                             color: thumbFeedback[vocab.vocID] === 'down' ? 'orange' : 'inherit'
                           }}
                         >
                           <ThumbDownIcon fontSize="small" />
                         </IconButton>
+                      </Box>
+                    </TableCell>
+                    <TableCell sx={{ textAlign: 'center' }}>{vocab.stage || 1}</TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
                         <IconButton 
                           size="small" 
                           onClick={() => handleEdit(vocab)}
