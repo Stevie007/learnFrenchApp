@@ -12,6 +12,7 @@ function App() {
   const [activeTab, setActiveTab] = useState(0);
   const [vocabularyList, setVocabularyList] = useState([]);
   const [username, setUsername] = useState('');
+  const [currentTranslationUrl, setCurrentTranslationUrl] = useState('');
 
   // Extract username from Basic Auth header
   useEffect(() => {
@@ -110,12 +111,19 @@ function App() {
       </Box>
 
       {/* Tab Content */}
-      {activeTab === 0 && <TranslationModule vocabularyList={vocabularyList} username={username} />}
+      {activeTab === 0 && (
+        <TranslationModule 
+          vocabularyList={vocabularyList} 
+          username={username}
+          onUrlChange={setCurrentTranslationUrl}
+        />
+      )}
       {activeTab === 1 && (
         <VocabularyModule 
           vocabularyList={vocabularyList} 
           setVocabularyList={setVocabularyList}
           username={username}
+          currentTranslationUrl={currentTranslationUrl}
         />
       )}
     </Container>

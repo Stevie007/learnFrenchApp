@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TextField, Button, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 
 // Global configuration (from App.jsx)
@@ -53,12 +53,19 @@ function backendGetAudio(url, payload) {
   });
 }
 
-function TranslationModule() {
+function TranslationModule({ onUrlChange }) {
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
   const [translation, setTranslation] = useState('');
   const [translationTripple, setTranslationTripple] = useState([]);
   const [audioUrl, setAudioUrl] = useState('');
+  
+  // Notify parent when URL changes
+  useEffect(() => {
+    if (onUrlChange) {
+      onUrlChange(input);
+    }
+  }, [input, onUrlChange]);
 
   const formatApiUrl = (url) => {
     if (!url) return '';
