@@ -4,6 +4,8 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import { createVocabulary, getVocabularies, updateVocabulary, deleteVocabulary } from './vocabularyApi';
 
 function VocabularyModule({ vocabularyList, setVocabularyList, username, currentTranslationUrl }) {
@@ -19,6 +21,9 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
   // State for Edit Dialog
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingVocab, setEditingVocab] = useState(null);
+  
+  // State for tracking thumb feedback
+  const [thumbFeedback, setThumbFeedback] = useState({}); // { vocID: 'up' | 'down' }
   
   // Update source when translation URL changes
   useEffect(() => {
@@ -142,6 +147,62 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
     }
   };
 
+  const handleThumbUp = async (vocab) => {
+    const updatedVocab = {
+      ...vocab,
+      stage: Math.min(vocab.stage + 1, 7) // Increase stage, max 7
+    };
+    
+    // Show green feedback - keep it for the session
+    setThumbFeedback({ ...thumbFeedback, [vocab.vocID]: 'up' });
+    
+    try {
+      const response = await updateVocabulary(updatedVocab);
+      
+      if (response.success) {
+        const updatedList = vocabularyList.map(v => 
+          v.vocID === vocab.vocID ? updatedVocab : v
+        );
+        setVocabularyList(updatedList);
+        localStorage.setItem('learnFrenchVocabulary', JSON.stringify(updatedList));
+        console.log('Vocabulary stage increased:', updatedVocab);
+      } else {
+        alert('Failed to update vocabulary: ' + (response.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error updating vocabulary:', error);
+      alert('Error updating vocabulary. Check console for details.');
+    }
+  };
+
+  const handleThumbDown = async (vocab) => {
+    const updatedVocab = {
+      ...vocab,
+      stage: Math.max(vocab.stage - 1, 1) // Decrease stage, min 1
+    };
+    
+    // Show yellow feedback - keep it for the session
+    setThumbFeedback({ ...thumbFeedback, [vocab.vocID]: 'down' });
+    
+    try {
+      const response = await updateVocabulary(updatedVocab);
+      
+      if (response.success) {
+        const updatedList = vocabularyList.map(v => 
+          v.vocID === vocab.vocID ? updatedVocab : v
+        );
+        setVocabularyList(updatedList);
+        localStorage.setItem('learnFrenchVocabulary', JSON.stringify(updatedList));
+        console.log('Vocabulary stage decreased:', updatedVocab);
+      } else {
+        alert('Failed to update vocabulary: ' + (response.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error updating vocabulary:', error);
+      alert('Error updating vocabulary. Check console for details.');
+    }
+  };
+
   const handleLoad = async () => {
     /*
     * Load vocabulary from backend based on filterOption and countValue
@@ -228,9 +289,9 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
               label="Filter"
               onChange={e => setFilterOption(e.target.value)}
             >
-              <MenuItem value="onlyNew">Neue Vokabeln</MenuItem>
+              <MenuItem value="onlyNew">Heute</MenuItem>
               <MenuItem value="yesterday">Gestern</MenuItem>
-              <MenuItem value="lastweek">Letzte Woche</MenuItem>
+              <MenuItem value="lastweek">Letzte 7 Tage</MenuItem>
               <MenuItem value="stage1">Phase 1 (neu)</MenuItem>
               <MenuItem value="stage2">Phase 2</MenuItem>
               <MenuItem value="stage3">Phase 3</MenuItem>
@@ -248,7 +309,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
               label="Count"
               onChange={e => setCountValue(e.target.value)}
             >
-              <MenuItem value="-">-</MenuItem>
+              <MenuItem value="100">-</MenuItem>
               <MenuItem value="5">5</MenuItem>
               <MenuItem value="10">10</MenuItem>
               <MenuItem value="15">15</MenuItem>
@@ -269,9 +330,10 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '45%' }}>Français</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '45%' }}>Deutsch</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>Français</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>Deutsch</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '8%', textAlign: 'center' }}>Stage</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -279,15 +341,9 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
                   <TableRow key={vocab.vocID}>
                     <TableCell>{vocab.textFr}</TableCell>
                     <TableCell>{vocab.textDe}</TableCell>
+                    <TableCell sx={{ textAlign: 'center' }}>{vocab.stage || 1}</TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', gap: 0.5 }}>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleEdit(vocab)}
-                          title="Edit"
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
                         <IconButton 
                           size="small" 
                           onClick={() => handleMoveUp(index)}
@@ -303,6 +359,33 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
                           title="Move down"
                         >
                           <ArrowDownwardIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleThumbUp(vocab)}
+                          title="Good (increase stage)"
+                          sx={{ 
+                            color: thumbFeedback[vocab.vocID] === 'up' ? 'green' : 'inherit'
+                          }}
+                        >
+                          <ThumbUpIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleThumbDown(vocab)}
+                          title="Needs practice (decrease stage)"
+                          sx={{ 
+                            color: thumbFeedback[vocab.vocID] === 'down' ? 'orange' : 'inherit'
+                          }}
+                        >
+                          <ThumbDownIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleEdit(vocab)}
+                          title="Edit"
+                        >
+                          <EditIcon fontSize="small" />
                         </IconButton>
                       </Box>
                     </TableCell>
