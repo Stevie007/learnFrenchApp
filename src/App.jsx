@@ -13,6 +13,13 @@ function App() {
   const [vocabularyList, setVocabularyList] = useState([]);
   const [username, setUsername] = useState('');
   const [currentTranslationUrl, setCurrentTranslationUrl] = useState('');
+  
+  // Translation module state (lifted to persist across tab switches)
+  const [translationInput, setTranslationInput] = useState('');
+  const [translationResult, setTranslationResult] = useState('');
+  const [translation, setTranslation] = useState('');
+  const [translationTripple, setTranslationTripple] = useState([]);
+  const [audioUrl, setAudioUrl] = useState('');
 
   // Extract username from Basic Auth header
   useEffect(() => {
@@ -116,6 +123,16 @@ function App() {
           vocabularyList={vocabularyList} 
           username={username}
           onUrlChange={setCurrentTranslationUrl}
+          input={translationInput}
+          setInput={setTranslationInput}
+          result={translationResult}
+          setResult={setTranslationResult}
+          translation={translation}
+          setTranslation={setTranslation}
+          translationTripple={translationTripple}
+          setTranslationTripple={setTranslationTripple}
+          audioUrl={audioUrl}
+          setAudioUrl={setAudioUrl}
         />
       )}
       {activeTab === 1 && (

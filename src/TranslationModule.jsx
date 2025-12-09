@@ -53,12 +53,7 @@ function backendGetAudio(url, payload) {
   });
 }
 
-function TranslationModule({ onUrlChange }) {
-  const [input, setInput] = useState('');
-  const [result, setResult] = useState('');
-  const [translation, setTranslation] = useState('');
-  const [translationTripple, setTranslationTripple] = useState([]);
-  const [audioUrl, setAudioUrl] = useState('');
+function TranslationModule({ onUrlChange, input, setInput, result, setResult, translation, setTranslation, translationTripple, setTranslationTripple, audioUrl, setAudioUrl }) {
   
   // Notify parent when URL changes
   useEffect(() => {
