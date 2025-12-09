@@ -13,7 +13,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
   const [source, setSource] = useState('');
   
   // State for Review Vocabulary controls
-  const [filterOption, setFilterOption] = useState('new');
+  const [filterOption, setFilterOption] = useState('onlyNew');
   const [countValue, setCountValue] = useState('-');
   
   // State for Edit Dialog
@@ -143,10 +143,20 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
   };
 
   const handleLoad = async () => {
+    /*
+    * Load vocabulary from backend based on filterOption and countValue
+    * countValue: number of vocabularies to load or '-' for default
+    * filterOption: key to backend / Text in interface  
+    *    'onlyNew' / Neue Vokabeln, 
+    *    'yesterday' / Gestern, 
+    *    'lastweek' / Letzte Woche, 
+    *    'stage1'..'stage7' / Phase 1(neu)..7(gelernt),
+    * Todo - later: 'repetition' / Wiederholung, 'random' / Zufällig
+    */ 
     console.log('Load button called with filter:', filterOption, 'count:', countValue);
     
     try {
-      // Call backend API
+      // Call backend API with filter and count parameters
       const response = await getVocabularies(username || 'unknown', filterOption, countValue);
       
       if (response.success) {
@@ -158,76 +168,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
       }
     } catch (error) {
       console.error('Error loading vocabularies:', error);
-      // Fallback: Load 5 dummy vocabularies for testing
-      console.log('Using dummy data as fallback');
-      if (filterOption === 'lastweek') {
-      const dummyVocabularies = [
-        {
-          userid: username || 'demo',
-          vocID: Date.now().toString() + '-1',
-          textFr: 'Bonjour',
-          textDe: 'Guten Tag',
-          dateAdded: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-          lastReviewed: null,
-          reviewCount: 0,
-          stage: 2,
-          tags: 'greetings',
-          source: 'dummy'
-        },
-        {
-          userid: username || 'demo',
-          vocID: Date.now().toString() + '-2',
-          textFr: 'Merci beaucoup',
-          textDe: 'Vielen Dank',
-          dateAdded: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-          lastReviewed: null,
-          reviewCount: 0,
-          stage: 1,
-          tags: 'politeness',
-          source: 'dummy'
-        },
-        {
-          userid: username || 'demo',
-          vocID: Date.now().toString() + '-3',
-          textFr: 'Au revoir',
-          textDe: 'Auf Wiedersehen',
-          dateAdded: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days ago
-          lastReviewed: null,
-          reviewCount: 0,
-          stage: 3,
-          tags: 'greetings',
-          source: 'dummy'
-        },
-        {
-          userid: username || 'demo',
-          vocID: Date.now().toString() + '-4',
-          textFr: "S'il vous plaît",
-          textDe: 'Bitte',
-          dateAdded: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-          lastReviewed: null,
-          reviewCount: 0,
-          stage: 2,
-          tags: 'politeness',
-          source: 'dummy'
-        },
-        {
-          userid: username || 'demo',
-          vocID: Date.now().toString() + '-5',
-          textFr: 'Comment allez-vous?',
-          textDe: 'Wie geht es Ihnen?',
-          dateAdded: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(), // 6 days ago
-          lastReviewed: null,
-          reviewCount: 0,
-          stage: 1,
-          tags: 'questions',
-          source: 'dummy'
-        }
-      ];
-      
-      setVocabularyList(dummyVocabularies);
-      localStorage.setItem('learnFrenchVocabulary', JSON.stringify(dummyVocabularies));
-      console.log('Loaded 5 dummy vocabularies');
-      }
+      alert('Error loading vocabularies from backend. Check console for details.');
     }
   };
 
@@ -287,11 +228,16 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
               label="Filter"
               onChange={e => setFilterOption(e.target.value)}
             >
-              <MenuItem value="new">Only show new vocabulary</MenuItem>
-              <MenuItem value="yesterday">Yesterday's vocabulary</MenuItem>
-              <MenuItem value="lastweek">Last week's vocabulary</MenuItem>
-              <MenuItem value="repetition">Repetition based vocabulary set</MenuItem>
-              <MenuItem value="random">Random vocabulary</MenuItem>
+              <MenuItem value="onlyNew">Neue Vokabeln</MenuItem>
+              <MenuItem value="yesterday">Gestern</MenuItem>
+              <MenuItem value="lastweek">Letzte Woche</MenuItem>
+              <MenuItem value="stage1">Phase 1 (neu)</MenuItem>
+              <MenuItem value="stage2">Phase 2</MenuItem>
+              <MenuItem value="stage3">Phase 3</MenuItem>
+              <MenuItem value="stage4">Phase 4</MenuItem>
+              <MenuItem value="stage5">Phase 5</MenuItem>
+              <MenuItem value="stage6">Phase 6</MenuItem>
+              <MenuItem value="stage7">Phase 7 (gelernt)</MenuItem>
             </Select>
           </FormControl>
           
