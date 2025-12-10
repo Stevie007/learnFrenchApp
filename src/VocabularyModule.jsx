@@ -241,7 +241,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {/* Upper Part: Add Vocabulary */}
       <Box>
-        <Typography variant="h5" gutterBottom sx={{ mt: '10px' }}>
+        <Typography variant="h5" gutterBottom sx={{ mt: '10px', color: '#000000' }}>
           {t('vocabulary.addVocabulary')}
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -262,7 +262,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
             />
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="body2" sx={{ fontSize: '0.75rem', minWidth: '50px' }}>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem', minWidth: '50px', color: '#000000' }}>
               {t('vocabulary.source')}:
             </Typography>
             <TextField
@@ -289,7 +289,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
 
       {/* Middle Part: Review Vocabulary */}
       <Box>
-        <Typography variant="h5" gutterBottom>
+        <Typography variant="h5" gutterBottom sx={{ color: '#000000' }}>
           {t('vocabulary.reviewVocabulary')}
         </Typography>
         
@@ -339,7 +339,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
 
         {/* Vocabulary List */}
         {vocabularyList.length > 0 ? (
-          <TableContainer component={Paper}>
+          <TableContainer component={Paper} sx={{ backgroundColor: 'transparent', boxShadow: 'none' }}>
             <Table>
               <TableHead>
                 <TableRow>

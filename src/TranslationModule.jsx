@@ -191,10 +191,10 @@ function TranslationModule({ onUrlChange, input, setInput, result, setResult, tr
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: '0.875rem' }}>
-      {/* Input Mode Toggle */}
-      <Box sx={{ mb: 1 }}>
-        <FormLabel component="legend" sx={{ mb: 1, fontSize: '0.875rem' }}>
-          {t('translation.inputModeLabel')}
+      {/* Input Mode Label and Toggle in one line */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <FormLabel component="legend" sx={{ fontSize: '0.875rem', minWidth: 'fit-content', color: '#000000' }}>
+          {t('translation.inputModeLabel')}:
         </FormLabel>
         <RadioGroup
           row
@@ -205,6 +205,7 @@ function TranslationModule({ onUrlChange, input, setInput, result, setResult, tr
               setTextLoaded(true); // Show text field immediately when switching to text mode
             }
           }}
+          sx={{ minWidth: 'fit-content' }}
         >
           <FormControlLabel 
             value="url" 
@@ -218,11 +219,11 @@ function TranslationModule({ onUrlChange, input, setInput, result, setResult, tr
           />
         </RadioGroup>
       </Box>
-
+      
       {/* URL Input - only show when mode is 'url' */}
       {inputMode === 'url' && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="body2" sx={{ fontSize: '0.875rem', minWidth: '40px' }}>
+          <Typography variant="body2" sx={{ fontSize: '0.875rem', minWidth: '40px', color: '#000000' }}>
             URL:
           </Typography>
           <TextField
@@ -356,6 +357,7 @@ function TranslationModule({ onUrlChange, input, setInput, result, setResult, tr
             />
           }
           label={t('translation.developerExtensions')}
+          sx={{ '& .MuiFormControlLabel-label': { color: '#000000' } }}
         />
       </Box>
       

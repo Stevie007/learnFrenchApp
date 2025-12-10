@@ -21,7 +21,7 @@ const de = {
     translationResult: 'Übersetzungsergebnis',
     developerExtensions: 'Entwickler-Erweiterungen anzeigen',
     debugBackendUrls: 'Debug: Backend URLs',
-    inputModeLabel: 'Eingabemodus',
+    inputModeLabel: 'Textwahl via URL oder Direkteingabe: ',
     inputModeUrl: 'URL',
     inputModeText: 'Text',
     
