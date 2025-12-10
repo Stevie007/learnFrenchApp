@@ -11,6 +11,14 @@ const de = {
     }
   },
 
+  // Authentication
+  auth: {
+    welcome: 'Willkommen',
+    loginPrompt: 'Bitte melden Sie sich an, um fortzufahren',
+    loginButton: 'Anmelden',
+    logoutButton: 'Abmelden'
+  },
+
   // TranslationModule.jsx
   translation: {
     urlInput: 'URL oder Text zum Übersetzen',

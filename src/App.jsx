@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, Tabs, Tab } from '@mui/material';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Container, Typography, Box, Tabs, Tab, Button, CircularProgress } from '@mui/material';
 import TranslationModule from './TranslationModule';
 import VocabularyModule from './VocabularyModule';
+import Login from './Login';
+import Callback from './Callback';
 import { useTranslation } from './locales/i18n';
+import { useAuth } from './AuthContext';
 
 // Global configuration
 const MAX_TEXT_LENGTH = parseInt(import.meta.env.VITE_MAX_TEXT_LENGTH) || 4000;
 const MAX_TEXT_TO_AUDIO_LENGTH = parseInt(import.meta.env.VITE_MAX_TEXT_TO_AUDIO_LENGTH) || 4000;
 const TOP_MARGIN = '25px'; // Adjust this value to change the app's vertical position
 
-function App() {
+function MainApp() {
   const { t } = useTranslation();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [vocabularyList, setVocabularyList] = useState([]);
-  const [username, setUsername] = useState('');
+  const username = user?.username || user?.signInDetails?.loginId || 'User';
   const [currentTranslationUrl, setCurrentTranslationUrl] = useState('');
   
   // Global developer mode state
@@ -31,53 +36,7 @@ function App() {
   const [addedVocabIndex, setAddedVocabIndex] = useState(new Set()); // Track which vocabulary items were added (multi-select)
   const [translatePressed, setTranslatePressed] = useState(false); // Track if translate button was pressed
 
-  // Extract username from Basic Auth header
-  useEffect(() => {
-    const extractUsername = async () => {
-      try {
-        // Try to get from a test request with credentials
-        const response = await fetch(window.location.href, {
-          method: 'HEAD',
-          credentials: 'include'
-        });
-        
-        // Check if Authorization header is available (won't work in browser due to CORS)
-        // Alternative: Parse from a cookie or session if AWS Amplify sets one
-        
-        // For Basic Auth, we need to decode from the request
-        // Since browsers don't expose auth headers to JS, we'll use a backend endpoint
-        // Or store in localStorage after first login
-        
-        // Fallback: Check localStorage
-        const storedUser = localStorage.getItem('learnFrenchUser');
-        if (storedUser) {
-          setUsername(storedUser);
-        } else {
-          // Prompt user to enter username (will be saved for future sessions)
-          const user = prompt('Please enter your username:');
-          if (user) {
-            setUsername(user);
-            localStorage.setItem('learnFrenchUser', user);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to extract username:', error);
-        // Fallback to prompt
-        const storedUser = localStorage.getItem('learnFrenchUser');
-        if (storedUser) {
-          setUsername(storedUser);
-        } else {
-          const user = prompt('Please enter your username:');
-          if (user) {
-            setUsername(user);
-            localStorage.setItem('learnFrenchUser', user);
-          }
-        }
-      }
-    };
-    
-    extractUsername();
-  }, []);
+  // Username now comes from Cognito authentication
 
   // Persist developer mode to localStorage
   useEffect(() => {
@@ -104,6 +63,15 @@ function App() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: TOP_MARGIN, mb: 6 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Button 
+          size="small" 
+          variant="outlined" 
+          onClick={logout}
+        >
+          {t('auth.logoutButton')}
+        </Button>
+      </Box>
       <Typography variant="h3" align="center" gutterBottom sx={{ color: '#000000' }}>
         {t('app.title')}
         <Typography variant="subtitle1" align="center" gutterBottom sx={{ fontSize: '0.9rem' }}>
@@ -173,6 +141,39 @@ function App() {
         />
       )}
     </Container>
+  );
+}
+
+function App() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+        }}
+      >
+        <CircularProgress size={60} />
+      </Box>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route path="/callback" element={<Callback />} />
+      <Route
+        path="/"
+        element={isAuthenticated ? <MainApp /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/login"
+        element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />}
+      />
+    </Routes>
   );
 }
 

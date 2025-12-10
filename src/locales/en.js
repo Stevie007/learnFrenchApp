@@ -11,6 +11,14 @@ const en = {
     }
   },
 
+  // Authentication
+  auth: {
+    welcome: 'Welcome',
+    loginPrompt: 'Please sign in to continue',
+    loginButton: 'Sign In',
+    logoutButton: 'Sign Out'
+  },
+
   // TranslationModule.jsx
   translation: {
     urlInput: 'URL or text to translate',
