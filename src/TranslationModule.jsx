@@ -210,12 +210,14 @@ function TranslationModule({ onUrlChange, input, setInput, result, setResult, tr
           <FormControlLabel 
             value="url" 
             control={<Radio size="small" />} 
-            label={t('translation.inputModeUrl')} 
+            label={t('translation.inputModeUrl')}
+            sx={{ '& .MuiFormControlLabel-label': { color: '#000000' } }}
           />
           <FormControlLabel 
             value="text" 
             control={<Radio size="small" />} 
-            label={t('translation.inputModeText')} 
+            label={t('translation.inputModeText')}
+            sx={{ '& .MuiFormControlLabel-label': { color: '#000000' } }}
           />
         </RadioGroup>
       </Box>
