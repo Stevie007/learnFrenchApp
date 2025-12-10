@@ -4,11 +4,33 @@
 const API_BASE_URL = import.meta.env.VITE_BACKEND_VOCABULARY_API;
 
 /**
+ * Helper function to add Authorization header if token exists
+ */
+function getHeaders(idToken) {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (idToken) {
+    headers['Authorization'] = `Bearer ${idToken}`;
+  }
+  
+  return headers;
+}
+
+/**
  * Get single vocabulary by vocID
  */
-export async function getVocabulary(userid, vocID) {
+export async function getVocabulary(userid, vocID, idToken = null) {
   try {
-    const response = await fetch(`${API_BASE_URL}/vocabulary?userid=${userid}&vocID=${vocID}`);
+    const headers = {};
+    if (idToken) {
+      headers['Authorization'] = `Bearer ${idToken}`;
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/vocabulary?userid=${userid}&vocID=${vocID}`, {
+      headers: headers
+    });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -26,10 +48,17 @@ export async function getVocabulary(userid, vocID) {
  * @param {string} mode - Filter mode: 'new', 'yesterday', 'lastweek', 'repetition', 'random'
  * @param {number} count - Number of vocabularies to fetch
  */
-export async function getVocabularies(userid, mode, count) {
+export async function getVocabularies(userid, mode, count, idToken = null) {
   try {
+    const headers = {};
+    if (idToken) {
+      headers['Authorization'] = `Bearer ${idToken}`;
+    }
+    
     const countParam = count === '-' ? '' : `&count=${count}`;
-    const response = await fetch(`${API_BASE_URL}/vocabularies?userid=${userid}&mode=${mode}${countParam}`);
+    const response = await fetch(`${API_BASE_URL}/vocabularies?userid=${userid}&mode=${mode}${countParam}`, {
+      headers: headers
+    });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -45,13 +74,11 @@ export async function getVocabularies(userid, mode, count) {
  * Create new vocabulary
  * @returns {Object} Response with vocID
  */
-export async function createVocabulary(vocabularyData) {
+export async function createVocabulary(vocabularyData, idToken = null) {
   try {
     const response = await fetch(`${API_BASE_URL}/vocabulary`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getHeaders(idToken),
       body: JSON.stringify({
         userid: vocabularyData.userid,
         textFr: vocabularyData.textFr,
@@ -76,13 +103,11 @@ export async function createVocabulary(vocabularyData) {
 /**
  * Update existing vocabulary
  */
-export async function updateVocabulary(vocabularyData) {
+export async function updateVocabulary(vocabularyData, idToken = null) {
   try {
     const response = await fetch(`${API_BASE_URL}/vocabulary`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getHeaders(idToken),
       body: JSON.stringify({
         userid: vocabularyData.userid,
         vocID: vocabularyData.vocID,
@@ -111,10 +136,16 @@ export async function updateVocabulary(vocabularyData) {
 /**
  * Delete vocabulary by vocID
  */
-export async function deleteVocabulary(userid, vocID) {
+export async function deleteVocabulary(userid, vocID, idToken = null) {
   try {
+    const headers = {};
+    if (idToken) {
+      headers['Authorization'] = `Bearer ${idToken}`;
+    }
+    
     const response = await fetch(`${API_BASE_URL}/vocabulary?userid=${userid}&vocID=${vocID}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: headers
     });
     
     if (!response.ok) {

@@ -4,6 +4,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { createVocabulary } from './vocabularyApi';
 import { useTranslation } from './locales/i18n';
+import { useAuth } from './AuthContext';
 
 // Global configuration (from App.jsx)
 const DEBUG_LEVEL = import.meta.env.VITE_DEBUG_LEVEL === 'true';
@@ -15,12 +16,18 @@ const API_URL_GET_TEXT_FROM_URL = import.meta.env.VITE_BACKEND_GET_TEXT_FROM_URL
 const API_URL_TRANSLATE_VOCAB = import.meta.env.VITE_BACKEND_TRANSLATE_VOCAB;
 const API_URL_GET_AUDIO_FOR_TEXT = import.meta.env.VITE_BACKEND_GET_AUDIO_FOR_TEXT;
 
-function backendGetTextFromUrl(url, payload) {
+function backendGetTextFromUrl(url, payload, idToken) {
+  const headers = {
+    'Content-Type': 'text/plain',
+  };
+  
+  if (idToken) {
+    headers['Authorization'] = `Bearer ${idToken}`;
+  }
+  
   return fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'text/plain',
-    },
+    headers: headers,
     body: payload.text,
   }).then(response => {
     return (async () => {
@@ -33,7 +40,7 @@ function backendGetTextFromUrl(url, payload) {
   });
 }
 
-function backendGetAudio(url, payload) {
+function backendGetAudio(url, payload, idToken) {
   let payloadText = payload.text;
   
   if (payloadText.length > MAX_TEXT_TO_AUDIO_LENGTH) {
@@ -42,11 +49,17 @@ function backendGetAudio(url, payload) {
     payloadText = payloadText.substring(0, MAX_TEXT_TO_AUDIO_LENGTH - warningMsg.length) + warningMsg;
   }
   
+  const headers = {
+    'Content-Type': 'text/plain',
+  };
+  
+  if (idToken) {
+    headers['Authorization'] = `Bearer ${idToken}`;
+  }
+  
   return fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'text/plain',
-    },
+    headers: headers,
     body: payloadText,
   }).then(async (response) => {
     if (!response.ok) {
@@ -59,6 +72,7 @@ function backendGetAudio(url, payload) {
 
 function TranslationModule({ onUrlChange, input, setInput, result, setResult, translation, setTranslation, translationTripple, setTranslationTripple, audioUrl, setAudioUrl, vocabularyList, setVocabularyList, username, addedVocabIndex, setAddedVocabIndex, translatePressed, setTranslatePressed, developerMode, setDeveloperMode }) {
   const { t } = useTranslation();
+  const { tokens } = useAuth();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [inputMode, setInputMode] = useState('url'); // 'url' or 'text'
@@ -104,7 +118,7 @@ function TranslationModule({ onUrlChange, input, setInput, result, setResult, tr
       };
       
       // Call backend API
-      const response = await createVocabulary(vocabularyData);
+      const response = await createVocabulary(vocabularyData, tokens?.idToken);
       
       if (response.success) {
         const newVocab = {
@@ -138,7 +152,7 @@ function TranslationModule({ onUrlChange, input, setInput, result, setResult, tr
   const handleGetTextFromUrl = async () => {
     setLoadingUrl(true);
     try {
-      const data = await backendGetTextFromUrl(API_URL_GET_TEXT_FROM_URL, { text: input });
+      const data = await backendGetTextFromUrl(API_URL_GET_TEXT_FROM_URL, { text: input }, tokens?.idToken);
       console.log("Data received from backend:", data);
       setResult(data || '');
       setTextLoaded(true);
@@ -162,7 +176,7 @@ function TranslationModule({ onUrlChange, input, setInput, result, setResult, tr
       }
       console.log("transvocab - length of text to translate:", textToTranslate.length);
       
-      const data = await backendGetTextFromUrl(API_URL_TRANSLATE_VOCAB, { text: textToTranslate });
+      const data = await backendGetTextFromUrl(API_URL_TRANSLATE_VOCAB, { text: textToTranslate }, tokens?.idToken);
       console.log("Transvocab received from backend:", data);
       setTranslation(data || '');
       
@@ -179,7 +193,7 @@ function TranslationModule({ onUrlChange, input, setInput, result, setResult, tr
   const handleGetAudio = async () => {
     setLoadingAudio(true);
     try {
-      const url = await backendGetAudio(API_URL_GET_AUDIO_FOR_TEXT, { text: result });
+      const url = await backendGetAudio(API_URL_GET_AUDIO_FOR_TEXT, { text: result }, tokens?.idToken);
       console.log("Audio URL created:", url);
       setAudioUrl(url);
     } catch (error) {
@@ -365,15 +379,26 @@ function TranslationModule({ onUrlChange, input, setInput, result, setResult, tr
       
       {/* Backend URLs Debug Info - only show when developer mode is on */}
       {developerMode && (
-        <TextField
-          label={t('translation.debugBackendUrls')}
-          variant="outlined"
-          value={`Get Text: ${API_URL_GET_TEXT_FROM_URL}\nTranslate: ${API_URL_TRANSLATE_VOCAB}\nAudio: ${API_URL_GET_AUDIO_FOR_TEXT}`}
-          multiline
-          minRows={3}
-          InputProps={{ readOnly: true }}
-          sx={{ mt: 2 }}
-        />
+        <>
+          <TextField
+            label={t('translation.debugBackendUrls')}
+            variant="outlined"
+            value={`Get Text: ${API_URL_GET_TEXT_FROM_URL}\nTranslate: ${API_URL_TRANSLATE_VOCAB}\nAudio: ${API_URL_GET_AUDIO_FOR_TEXT}`}
+            multiline
+            minRows={3}
+            InputProps={{ readOnly: true }}
+            sx={{ mt: 2 }}
+          />
+          <TextField
+            label="JWT ID Token (for backend authentication)"
+            variant="outlined"
+            value={tokens?.idToken || 'Not available'}
+            multiline
+            minRows={4}
+            InputProps={{ readOnly: true }}
+            sx={{ mt: 2 }}
+          />
+        </>
       )}
     </Box>
   );

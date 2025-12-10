@@ -20,17 +20,37 @@ export const AuthProvider = ({ children }) => {
     try {
       const currentUser = await getCurrentUser();
       const session = await fetchAuthSession();
-      const attributes = await fetchUserAttributes();
+      
+      // Try to fetch attributes, but don't fail if not available
+      let attributes = {};
+      try {
+        attributes = await fetchUserAttributes();
+      } catch (attrError) {
+        console.log('Could not fetch user attributes:', attrError);
+        // Extract email from token as fallback
+        const idToken = session.tokens?.idToken;
+        if (idToken) {
+          const payload = JSON.parse(atob(idToken.toString().split('.')[1]));
+          attributes = {
+            email: payload.email,
+            sub: payload.sub
+          };
+        }
+      }
       
       // Add user attributes (email, name, etc.) to user object
       setUser({
         ...currentUser,
         attributes
       });
-      setTokens({
+      
+      const tokens = {
         idToken: session.tokens?.idToken?.toString(),
         accessToken: session.tokens?.accessToken?.toString(),
-      });
+      };
+      
+      setTokens(tokens);
+      
     } catch (error) {
       console.log('Not authenticated:', error);
       setUser(null);

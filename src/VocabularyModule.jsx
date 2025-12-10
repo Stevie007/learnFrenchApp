@@ -8,9 +8,11 @@ import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import { createVocabulary, getVocabularies, updateVocabulary, deleteVocabulary } from './vocabularyApi';
 import { useTranslation } from './locales/i18n';
+import { useAuth } from './AuthContext';
 
 function VocabularyModule({ vocabularyList, setVocabularyList, username, currentTranslationUrl, developerMode }) {
   const { t } = useTranslation();
+  const { tokens } = useAuth();
   // State for Add Vocabulary form
   const [textFr, setTextFr] = useState('');
   const [textDe, setTextDe] = useState('');
@@ -51,7 +53,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
       };
       
       // Call backend API
-      const response = await createVocabulary(vocabularyData);
+      const response = await createVocabulary(vocabularyData, tokens?.idToken);
       
       if (response.success) {
         const newVocab = {
@@ -111,7 +113,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
 
   const handleSaveEdit = async () => {
     try {
-      const response = await updateVocabulary(editingVocab);
+      const response = await updateVocabulary(editingVocab, tokens?.idToken);
       
       if (response.success) {
         const updatedList = vocabularyList.map(v => 
@@ -134,7 +136,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
     if (!confirm(t('vocabulary.confirmDelete'))) return;
     
     try {
-      const response = await deleteVocabulary(editingVocab.userid, editingVocab.vocID);
+      const response = await deleteVocabulary(editingVocab.userid, editingVocab.vocID, tokens?.idToken);
       
       if (response.success) {
         const updatedList = vocabularyList.filter(v => v.vocID !== editingVocab.vocID);
@@ -161,7 +163,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
     setThumbFeedback({ ...thumbFeedback, [vocab.vocID]: 'up' });
     
     try {
-      const response = await updateVocabulary(updatedVocab);
+      const response = await updateVocabulary(updatedVocab, tokens?.idToken);
       
       if (response.success) {
         const updatedList = vocabularyList.map(v => 
@@ -189,7 +191,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
     setThumbFeedback({ ...thumbFeedback, [vocab.vocID]: 'down' });
     
     try {
-      const response = await updateVocabulary(updatedVocab);
+      const response = await updateVocabulary(updatedVocab, tokens?.idToken);
       
       if (response.success) {
         const updatedList = vocabularyList.map(v => 
