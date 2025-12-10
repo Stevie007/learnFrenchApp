@@ -18,7 +18,7 @@ function MainApp() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [vocabularyList, setVocabularyList] = useState([]);
-  const username = user?.username || user?.signInDetails?.loginId || 'User';
+  const username = user?.attributes?.email || user?.attributes?.name || user?.signInDetails?.loginId || 'User';
   const [currentTranslationUrl, setCurrentTranslationUrl] = useState('');
   
   // Global developer mode state

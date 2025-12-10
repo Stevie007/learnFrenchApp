@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { fetchAuthSession, getCurrentUser, signOut } from 'aws-amplify/auth';
+import { fetchAuthSession, getCurrentUser, fetchUserAttributes, signOut } from 'aws-amplify/auth';
 
 const AuthContext = createContext();
 
@@ -20,8 +20,13 @@ export const AuthProvider = ({ children }) => {
     try {
       const currentUser = await getCurrentUser();
       const session = await fetchAuthSession();
+      const attributes = await fetchUserAttributes();
       
-      setUser(currentUser);
+      // Add user attributes (email, name, etc.) to user object
+      setUser({
+        ...currentUser,
+        attributes
+      });
       setTokens({
         idToken: session.tokens?.idToken?.toString(),
         accessToken: session.tokens?.accessToken?.toString(),
