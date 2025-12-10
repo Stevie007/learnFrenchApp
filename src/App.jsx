@@ -104,7 +104,7 @@ function App() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: TOP_MARGIN, mb: 6 }}>
-      <Typography variant="h3" align="center" gutterBottom>
+      <Typography variant="h3" align="center" gutterBottom sx={{ color: '#000000' }}>
         {t('app.title')}
         <Typography variant="subtitle1" align="center" gutterBottom sx={{ fontSize: '0.9rem' }}>
           {t('app.subtitle', { maxText: MAX_TEXT_LENGTH, maxAudio: MAX_TEXT_TO_AUDIO_LENGTH })}

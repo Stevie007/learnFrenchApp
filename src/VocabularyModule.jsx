@@ -424,16 +424,6 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
         )}
       </Box>
 
-      {/* Lower Part: Train Vocabulary (Placeholder) */}
-      <Box sx={{ mt: 4, p: 3, border: '1px dashed #ccc', borderRadius: 1 }}>
-        <Typography variant="h5" gutterBottom>
-          {t('vocabulary.trainVocabulary')}
-        </Typography>
-        <Typography color="text.secondary">
-          {t('vocabulary.trainPlaceholder')}
-        </Typography>
-      </Box>
-
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onClose={handleCloseEditDialog} maxWidth="md" fullWidth>
         <DialogTitle>{t('vocabulary.editDialog.title')}</DialogTitle>

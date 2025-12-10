@@ -368,7 +368,7 @@ function TranslationModule({ onUrlChange, input, setInput, result, setResult, tr
           multiline
           minRows={3}
           InputProps={{ readOnly: true }}
-          sx={{ mt: 2, backgroundColor: '#f5f5f5' }}
+          sx={{ mt: 2 }}
         />
       )}
     </Box>

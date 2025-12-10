@@ -43,7 +43,7 @@ const de = {
   vocabulary: {
     // Section titles
     addVocabulary: 'Vokabel hinzufügen',
-    reviewVocabulary: 'Vokabeln überprüfen',
+    reviewVocabulary: 'Vokabeln trainieren',
     trainVocabulary: 'Vokabeln trainieren',
     
     // Form labels
