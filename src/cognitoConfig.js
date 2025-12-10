@@ -9,8 +9,14 @@ const cognitoConfig = {
         oauth: {
           domain: 'eu-north-19oeaeovbb.auth.eu-north-1.amazoncognito.com',
           scopes: ['openid', 'email', 'profile'],
-          redirectSignIn: ['http://localhost:5174/callback'],
-          redirectSignOut: ['http://localhost:5174'],
+          redirectSignIn: [
+            'http://localhost:5174/callback',
+            'https://master.d2ni6r2bfyqagn.amplifyapp.com/callback'
+          ],
+          redirectSignOut: [
+            'http://localhost:5174',
+            'https://master.d2ni6r2bfyqagn.amplifyapp.com'
+          ],
           responseType: 'code',
         }
       }
