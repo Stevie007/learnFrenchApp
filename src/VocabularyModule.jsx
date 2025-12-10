@@ -7,12 +7,15 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import { createVocabulary, getVocabularies, updateVocabulary, deleteVocabulary } from './vocabularyApi';
+import { useTranslation } from './locales/i18n';
 
-function VocabularyModule({ vocabularyList, setVocabularyList, username, currentTranslationUrl }) {
+function VocabularyModule({ vocabularyList, setVocabularyList, username, currentTranslationUrl, developerMode }) {
+  const { t } = useTranslation();
   // State for Add Vocabulary form
   const [textFr, setTextFr] = useState('');
   const [textDe, setTextDe] = useState('');
   const [source, setSource] = useState('');
+  const [sourceManuallyEdited, setSourceManuallyEdited] = useState(false); // Track if user manually changed source
   
   // State for Review Vocabulary controls
   const [filterOption, setFilterOption] = useState('onlyNew');
@@ -25,16 +28,16 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
   // State for tracking thumb feedback
   const [thumbFeedback, setThumbFeedback] = useState({}); // { vocID: 'up' | 'down' }
   
-  // Update source when translation URL changes, but only if source is empty
+  // Update source when translation URL changes, but only if source hasn't been manually edited
   useEffect(() => {
-    if (currentTranslationUrl && !source) {
+    if (currentTranslationUrl && !sourceManuallyEdited) {
       setSource(currentTranslationUrl);
     }
-  }, [currentTranslationUrl, source]);
+  }, [currentTranslationUrl, sourceManuallyEdited]);
 
   const handleSave = async () => {
     if (!textFr.trim() || !textDe.trim()) {
-      alert('Please fill both French and German text');
+      alert(t('vocabulary.fillBothFields'));
       return;
     }
 
@@ -68,14 +71,15 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
         setTextFr('');
         setTextDe('');
         setSource(currentTranslationUrl || '');
+        setSourceManuallyEdited(false); // Reset manual edit flag
         
-        console.log('Vocabulary saved:', newVocab);
+        console.log(t('vocabulary.console.vocabularySaved'), newVocab);
       } else {
-        alert('Failed to save vocabulary: ' + (response.error || 'Unknown error'));
+        alert(t('vocabulary.saveFailed', { error: response.error || 'Unknown error' }));
       }
     } catch (error) {
       console.error('Error saving vocabulary:', error);
-      alert('Error saving vocabulary to backend. Check console for details.');
+      alert(t('vocabulary.saveError'));
     }
   };
 
@@ -116,18 +120,18 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
         setVocabularyList(updatedList);
         localStorage.setItem('learnFrenchVocabulary', JSON.stringify(updatedList));
         handleCloseEditDialog();
-        console.log('Vocabulary updated:', editingVocab);
+        console.log(t('vocabulary.console.vocabularyUpdated'), editingVocab);
       } else {
-        alert('Failed to update vocabulary: ' + (response.error || 'Unknown error'));
+        alert(t('vocabulary.updateFailed', { error: response.error || 'Unknown error' }));
       }
     } catch (error) {
       console.error('Error updating vocabulary:', error);
-      alert('Error updating vocabulary. Check console for details.');
+      alert(t('vocabulary.updateError'));
     }
   };
 
   const handleDeleteEdit = async () => {
-    if (!confirm('Are you sure you want to delete this vocabulary?')) return;
+    if (!confirm(t('vocabulary.confirmDelete'))) return;
     
     try {
       const response = await deleteVocabulary(editingVocab.userid, editingVocab.vocID);
@@ -137,13 +141,13 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
         setVocabularyList(updatedList);
         localStorage.setItem('learnFrenchVocabulary', JSON.stringify(updatedList));
         handleCloseEditDialog();
-        console.log('Vocabulary deleted:', editingVocab.vocID);
+        console.log(t('vocabulary.console.vocabularyDeleted'), editingVocab.vocID);
       } else {
-        alert('Failed to delete vocabulary: ' + (response.error || 'Unknown error'));
+        alert(t('vocabulary.deleteFailed', { error: response.error || 'Unknown error' }));
       }
     } catch (error) {
       console.error('Error deleting vocabulary:', error);
-      alert('Error deleting vocabulary. Check console for details.');
+      alert(t('vocabulary.deleteError'));
     }
   };
 
@@ -165,13 +169,13 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
         );
         setVocabularyList(updatedList);
         localStorage.setItem('learnFrenchVocabulary', JSON.stringify(updatedList));
-        console.log('Vocabulary stage increased:', updatedVocab);
+        console.log(t('vocabulary.console.stageIncreased'), updatedVocab);
       } else {
-        alert('Failed to update vocabulary: ' + (response.error || 'Unknown error'));
+        alert(t('vocabulary.updateFailed', { error: response.error || 'Unknown error' }));
       }
     } catch (error) {
       console.error('Error updating vocabulary:', error);
-      alert('Error updating vocabulary. Check console for details.');
+      alert(t('vocabulary.updateError'));
     }
   };
 
@@ -193,13 +197,13 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
         );
         setVocabularyList(updatedList);
         localStorage.setItem('learnFrenchVocabulary', JSON.stringify(updatedList));
-        console.log('Vocabulary stage decreased:', updatedVocab);
+        console.log(t('vocabulary.console.stageDecreased'), updatedVocab);
       } else {
-        alert('Failed to update vocabulary: ' + (response.error || 'Unknown error'));
+        alert(t('vocabulary.updateFailed', { error: response.error || 'Unknown error' }));
       }
     } catch (error) {
       console.error('Error updating vocabulary:', error);
-      alert('Error updating vocabulary. Check console for details.');
+      alert(t('vocabulary.updateError'));
     }
   };
 
@@ -214,7 +218,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
     *    'stage1'..'stage7' / Phase 1(neu)..7(gelernt),
     * Todo - later: 'repetition' / Wiederholung, 'random' / Zufällig
     */ 
-    console.log('Load button called with filter:', filterOption, 'count:', countValue);
+    console.log(t('vocabulary.console.loadButtonCalled'), filterOption, 'count:', countValue);
     
     try {
       // Call backend API with filter and count parameters
@@ -223,13 +227,13 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
       if (response.success) {
         setVocabularyList(response.data);
         localStorage.setItem('learnFrenchVocabulary', JSON.stringify(response.data));
-        console.log('Loaded vocabularies from backend:', response.data.length, 'items');
+        console.log(t('vocabulary.console.loadedFromBackend'), response.data.length, t('common.items'));
       } else {
-        alert('Failed to load vocabularies: ' + (response.error || 'Unknown error'));
+        alert(t('vocabulary.loadFailed', { error: response.error || 'Unknown error' }));
       }
     } catch (error) {
       console.error('Error loading vocabularies:', error);
-      alert('Error loading vocabularies from backend. Check console for details.');
+      alert(t('vocabulary.loadError'));
     }
   };
 
@@ -237,38 +241,47 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {/* Upper Part: Add Vocabulary */}
       <Box>
-        <Typography variant="h5" gutterBottom>
-          Add Vocabulary
+        <Typography variant="h5" gutterBottom sx={{ mt: '10px' }}>
+          {t('vocabulary.addVocabulary')}
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
-              label="Text (Français)"
+              label={t('vocabulary.textFrench')}
               variant="outlined"
               value={textFr}
               onChange={e => setTextFr(e.target.value)}
               sx={{ flex: 1 }}
             />
             <TextField
-              label="Text (Deutsch)"
+              label={t('vocabulary.textGerman')}
               variant="outlined"
               value={textDe}
               onChange={e => setTextDe(e.target.value)}
               sx={{ flex: 1 }}
             />
           </Box>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem', minWidth: '50px' }}>
+              {t('vocabulary.source')}:
+            </Typography>
             <TextField
-              label="Source (URL or description)"
               variant="outlined"
               value={source}
-              onChange={e => setSource(e.target.value)}
+              onChange={e => {
+                setSource(e.target.value);
+                setSourceManuallyEdited(true); // Mark as manually edited
+              }}
               size="small"
-              sx={{ flex: 1 }}
-              placeholder="Current translation URL or 'manual'"
+              fullWidth
+              placeholder={t('vocabulary.sourcePlaceholder')}
+              InputProps={{ style: { fontSize: '0.75rem', height: '32px' } }}
+              InputLabelProps={{ style: { fontSize: '0.75rem' } }}
             />
-            <Button variant="contained" onClick={handleSave}>
-              Save
+          </Box>
+          <Box sx={{ mb: '10px' }}>
+            <Button variant="contained" size="small" onClick={handleSave}>
+              {t('vocabulary.saveButton')}
             </Button>
           </Box>
         </Box>
@@ -277,36 +290,36 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
       {/* Middle Part: Review Vocabulary */}
       <Box>
         <Typography variant="h5" gutterBottom>
-          Review Vocabulary
+          {t('vocabulary.reviewVocabulary')}
         </Typography>
         
         {/* Filter Controls */}
         <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
           <FormControl sx={{ minWidth: 250 }}>
-            <InputLabel>Filter</InputLabel>
+            <InputLabel>{t('vocabulary.filter')}</InputLabel>
             <Select
               value={filterOption}
-              label="Filter"
+              label={t('vocabulary.filter')}
               onChange={e => setFilterOption(e.target.value)}
             >
-              <MenuItem value="onlyNew">Heute</MenuItem>
-              <MenuItem value="yesterday">Gestern</MenuItem>
-              <MenuItem value="lastweek">Letzte 7 Tage</MenuItem>
-              <MenuItem value="stage1">Phase 1 (neu)</MenuItem>
-              <MenuItem value="stage2">Phase 2</MenuItem>
-              <MenuItem value="stage3">Phase 3</MenuItem>
-              <MenuItem value="stage4">Phase 4</MenuItem>
-              <MenuItem value="stage5">Phase 5</MenuItem>
-              <MenuItem value="stage6">Phase 6</MenuItem>
-              <MenuItem value="stage7">Phase 7 (gelernt)</MenuItem>
+              <MenuItem value="onlyNew">{t('vocabulary.filterOptions.today')}</MenuItem>
+              <MenuItem value="yesterday">{t('vocabulary.filterOptions.yesterday')}</MenuItem>
+              <MenuItem value="lastweek">{t('vocabulary.filterOptions.lastWeek')}</MenuItem>
+              <MenuItem value="stage1">{t('vocabulary.filterOptions.stage1')}</MenuItem>
+              <MenuItem value="stage2">{t('vocabulary.filterOptions.stage2')}</MenuItem>
+              <MenuItem value="stage3">{t('vocabulary.filterOptions.stage3')}</MenuItem>
+              <MenuItem value="stage4">{t('vocabulary.filterOptions.stage4')}</MenuItem>
+              <MenuItem value="stage5">{t('vocabulary.filterOptions.stage5')}</MenuItem>
+              <MenuItem value="stage6">{t('vocabulary.filterOptions.stage6')}</MenuItem>
+              <MenuItem value="stage7">{t('vocabulary.filterOptions.stage7')}</MenuItem>
             </Select>
           </FormControl>
           
           <FormControl sx={{ minWidth: 100 }}>
-            <InputLabel>Count</InputLabel>
+            <InputLabel>{t('vocabulary.count')}</InputLabel>
             <Select
               value={countValue}
-              label="Count"
+              label={t('vocabulary.count')}
               onChange={e => setCountValue(e.target.value)}
             >
               <MenuItem value="100">-</MenuItem>
@@ -319,8 +332,8 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
             </Select>
           </FormControl>
           
-          <Button variant="contained" onClick={handleLoad}>
-            Load
+          <Button variant="contained" size="small" onClick={handleLoad}>
+            {t('vocabulary.loadButton')}
           </Button>
         </Box>
 
@@ -330,12 +343,12 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '8%', textAlign: 'center' }}>Order</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Français</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Deutsch</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%', textAlign: 'center' }}>Review</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '6%', textAlign: 'center' }}>Stage</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '16%' }}>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '8%', textAlign: 'center' }}>{t('vocabulary.table.order')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>{t('vocabulary.table.french')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>{t('vocabulary.table.german')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%', textAlign: 'center' }}>{t('vocabulary.table.review')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '6%', textAlign: 'center' }}>{t('vocabulary.table.stage')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '16%' }}>{t('vocabulary.table.actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -347,7 +360,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
                           size="small" 
                           onClick={() => handleMoveUp(index)}
                           disabled={index === 0}
-                          title="Move up"
+                          title={t('vocabulary.tooltips.moveUp')}
                         >
                           <ArrowUpwardIcon fontSize="small" />
                         </IconButton>
@@ -355,7 +368,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
                           size="small" 
                           onClick={() => handleMoveDown(index)}
                           disabled={index === vocabularyList.length - 1}
-                          title="Move down"
+                          title={t('vocabulary.tooltips.moveDown')}
                         >
                           <ArrowDownwardIcon fontSize="small" />
                         </IconButton>
@@ -368,7 +381,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
                         <IconButton 
                           size="small" 
                           onClick={() => handleThumbUp(vocab)}
-                          title="Richtig"
+                          title={t('vocabulary.tooltips.correct')}
                           sx={{ 
                             color: thumbFeedback[vocab.vocID] === 'up' ? 'green' : 'inherit'
                           }}
@@ -378,7 +391,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
                         <IconButton 
                           size="small" 
                           onClick={() => handleThumbDown(vocab)}
-                          title="Erneut üben"
+                          title={t('vocabulary.tooltips.practiceAgain')}
                           sx={{ 
                             color: thumbFeedback[vocab.vocID] === 'down' ? 'orange' : 'inherit'
                           }}
@@ -393,7 +406,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
                         <IconButton 
                           size="small" 
                           onClick={() => handleEdit(vocab)}
-                          title="Edit"
+                          title={t('vocabulary.tooltips.edit')}
                         >
                           <EditIcon fontSize="small" />
                         </IconButton>
@@ -406,7 +419,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
           </TableContainer>
         ) : (
           <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
-            No vocabulary added yet. Add your first vocabulary above!
+            {t('vocabulary.noVocabulary')}
           </Typography>
         )}
       </Box>
@@ -414,90 +427,120 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
       {/* Lower Part: Train Vocabulary (Placeholder) */}
       <Box sx={{ mt: 4, p: 3, border: '1px dashed #ccc', borderRadius: 1 }}>
         <Typography variant="h5" gutterBottom>
-          Train Vocabulary
+          {t('vocabulary.trainVocabulary')}
         </Typography>
         <Typography color="text.secondary">
-          Training functionality will be implemented here later.
+          {t('vocabulary.trainPlaceholder')}
         </Typography>
       </Box>
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onClose={handleCloseEditDialog} maxWidth="md" fullWidth>
-        <DialogTitle>Edit Vocabulary</DialogTitle>
+        <DialogTitle>{t('vocabulary.editDialog.title')}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
             <TextField
-              label="Text (Français)"
+              label={t('vocabulary.textFrench')}
               variant="outlined"
               value={editingVocab?.textFr || ''}
               onChange={e => setEditingVocab({ ...editingVocab, textFr: e.target.value })}
               fullWidth
             />
             <TextField
-              label="Text (Deutsch)"
+              label={t('vocabulary.textGerman')}
               variant="outlined"
               value={editingVocab?.textDe || ''}
               onChange={e => setEditingVocab({ ...editingVocab, textDe: e.target.value })}
               fullWidth
             />
             <TextField
-              label="Source"
+              label={t('vocabulary.source')}
               variant="outlined"
               value={editingVocab?.source || ''}
               onChange={e => setEditingVocab({ ...editingVocab, source: e.target.value })}
               fullWidth
             />
             <TextField
-              label="Tags"
+              label={t('vocabulary.tags')}
               variant="outlined"
               value={editingVocab?.tags || ''}
               onChange={e => setEditingVocab({ ...editingVocab, tags: e.target.value })}
               fullWidth
-              placeholder="e.g., greetings, travel, food"
+              placeholder={t('vocabulary.tagsPlaceholder')}
             />
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
-                label="Stage"
-                type="number"
-                variant="outlined"
-                value={editingVocab?.stage || 1}
-                onChange={e => setEditingVocab({ ...editingVocab, stage: parseInt(e.target.value) || 1 })}
-                sx={{ flex: 1 }}
-                inputProps={{ min: 1, max: 7 }}
-              />
-              <TextField
-                label="Review Count"
-                type="number"
-                variant="outlined"
-                value={editingVocab?.reviewCount || 0}
-                onChange={e => setEditingVocab({ ...editingVocab, reviewCount: parseInt(e.target.value) || 0 })}
-                sx={{ flex: 1 }}
-                inputProps={{ min: 0 }}
-              />
+            
+            {/* Action Buttons */}
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', my: 2 }}>
+              <Button onClick={handleCloseEditDialog} size="small" variant="outlined">
+                {t('vocabulary.cancelButton')}
+              </Button>
+              <Button onClick={handleSaveEdit} size="small" variant="contained" sx={{ minWidth: 120 }}>
+                {t('vocabulary.saveButton')}
+              </Button>
+              <Button onClick={handleDeleteEdit} size="small" color="error" variant="outlined" startIcon={<DeleteIcon />}>
+                {t('vocabulary.deleteButton')}
+              </Button>
             </Box>
-            <TextField
-              label="Vocabulary ID"
-              variant="outlined"
-              value={editingVocab?.vocID || ''}
-              fullWidth
-              disabled
-              size="small"
-            />
+            
+            {/* Developer fields - only show when developer mode is on */}
+            {developerMode && (
+              <>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <TextField
+                    label={t('vocabulary.stage')}
+                    type="number"
+                    variant="outlined"
+                    value={editingVocab?.stage || 1}
+                    onChange={e => setEditingVocab({ ...editingVocab, stage: parseInt(e.target.value) || 1 })}
+                    sx={{ flex: 1 }}
+                    inputProps={{ min: 1, max: 7 }}
+                  />
+                  <TextField
+                    label={t('vocabulary.reviewCount')}
+                    type="number"
+                    variant="outlined"
+                    value={editingVocab?.reviewCount || 0}
+                    onChange={e => setEditingVocab({ ...editingVocab, reviewCount: parseInt(e.target.value) || 0 })}
+                    sx={{ flex: 1 }}
+                    inputProps={{ min: 0 }}
+                  />
+                </Box>
+                <TextField
+                  label={t('vocabulary.vocabId')}
+                  variant="outlined"
+                  value={editingVocab?.vocID || ''}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  size="small"
+                />
+                <TextField
+                  label={t('vocabulary.dateAdded')}
+                  variant="outlined"
+                  value={editingVocab?.dateAdded || ''}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  size="small"
+                />
+                <TextField
+                  label={t('vocabulary.lastReviewed')}
+                  variant="outlined"
+                  value={editingVocab?.lastReviewed || ''}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  size="small"
+                />
+                <TextField
+                  label={t('vocabulary.userId')}
+                  variant="outlined"
+                  value={editingVocab?.userid || ''}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  size="small"
+                />
+              </>
+            )}
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseEditDialog}>
-            Cancel
-          </Button>
-          <Box sx={{ flex: 1 }} />
-          <Button onClick={handleSaveEdit} variant="contained" sx={{ minWidth: 120 }}>
-            Save
-          </Button>
-          <Box sx={{ width: 80 }} />
-          <Button onClick={handleDeleteEdit} color="error" startIcon={<DeleteIcon />}>
-            Delete
-          </Button>
-        </DialogActions>
       </Dialog>
     </Box>
   );

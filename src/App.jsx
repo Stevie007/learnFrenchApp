@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Tabs, Tab } from '@mui/material';
 import TranslationModule from './TranslationModule';
 import VocabularyModule from './VocabularyModule';
+import { useTranslation } from './locales/i18n';
 
 // Global configuration
 const MAX_TEXT_LENGTH = parseInt(import.meta.env.VITE_MAX_TEXT_LENGTH) || 4000;
@@ -9,10 +10,17 @@ const MAX_TEXT_TO_AUDIO_LENGTH = parseInt(import.meta.env.VITE_MAX_TEXT_TO_AUDIO
 const TOP_MARGIN = '25px'; // Adjust this value to change the app's vertical position
 
 function App() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState(0);
   const [vocabularyList, setVocabularyList] = useState([]);
   const [username, setUsername] = useState('');
   const [currentTranslationUrl, setCurrentTranslationUrl] = useState('');
+  
+  // Global developer mode state
+  const [developerMode, setDeveloperMode] = useState(() => {
+    const saved = localStorage.getItem('developerMode');
+    return saved === 'true';
+  });
   
   // Translation module state (lifted to persist across tab switches)
   const [translationInput, setTranslationInput] = useState('');
@@ -20,6 +28,8 @@ function App() {
   const [translation, setTranslation] = useState('');
   const [translationTripple, setTranslationTripple] = useState([]);
   const [audioUrl, setAudioUrl] = useState('');
+  const [addedVocabIndex, setAddedVocabIndex] = useState(new Set()); // Track which vocabulary items were added (multi-select)
+  const [translatePressed, setTranslatePressed] = useState(false); // Track if translate button was pressed
 
   // Extract username from Basic Auth header
   useEffect(() => {
@@ -69,6 +79,11 @@ function App() {
     extractUsername();
   }, []);
 
+  // Persist developer mode to localStorage
+  useEffect(() => {
+    localStorage.setItem('developerMode', developerMode.toString());
+  }, [developerMode]);
+
   // Load vocabulary from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('learnFrenchVocabulary');
@@ -90,10 +105,10 @@ function App() {
   return (
     <Container maxWidth="lg" sx={{ mt: TOP_MARGIN, mb: 6 }}>
       <Typography variant="h3" align="center" gutterBottom>
-        On Parle Français - 5 min par jour
+        {t('app.title')}
         <Typography variant="subtitle1" align="center" gutterBottom sx={{ fontSize: '0.9rem' }}>
-          Text Trainer französisch - Limit(Zeichen): {MAX_TEXT_LENGTH}/Übersetzung, {MAX_TEXT_TO_AUDIO_LENGTH}/Audio
-          - {username && <span style={{ fontWeight: 'bold', color: '#0055A4' }}>User: {username} </span>}
+          {t('app.subtitle', { maxText: MAX_TEXT_LENGTH, maxAudio: MAX_TEXT_TO_AUDIO_LENGTH })}
+          - {username && <span style={{ fontWeight: 'bold', color: '#0055A4' }}>{t('app.userLabel', { username })} </span>}
         </Typography>
       </Typography>
 
@@ -101,17 +116,23 @@ function App() {
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={activeTab} onChange={handleTabChange} centered>
           <Tab 
-            label="Text Translation" 
+            label={t('app.tabs.translation')}
             sx={{ 
               backgroundColor: '#e6f2ff',
-              '&.Mui-selected': { backgroundColor: '#cce5ff' }
+              '&.Mui-selected': { 
+                backgroundColor: '#cce5ff',
+                fontWeight: 'bold'
+              }
             }} 
           />
           <Tab 
-            label="Vocabulary Training" 
+            label={t('app.tabs.vocabulary')}
             sx={{ 
               backgroundColor: '#fff4e6',
-              '&.Mui-selected': { backgroundColor: '#ffe8cc' }
+              '&.Mui-selected': { 
+                backgroundColor: '#ffe8cc',
+                fontWeight: 'bold'
+              }
             }} 
           />
         </Tabs>
@@ -120,7 +141,8 @@ function App() {
       {/* Tab Content */}
       {activeTab === 0 && (
         <TranslationModule 
-          vocabularyList={vocabularyList} 
+          vocabularyList={vocabularyList}
+          setVocabularyList={setVocabularyList}
           username={username}
           onUrlChange={setCurrentTranslationUrl}
           input={translationInput}
@@ -133,14 +155,21 @@ function App() {
           setTranslationTripple={setTranslationTripple}
           audioUrl={audioUrl}
           setAudioUrl={setAudioUrl}
+          addedVocabIndex={addedVocabIndex}
+          setAddedVocabIndex={setAddedVocabIndex}
+          translatePressed={translatePressed}
+          setTranslatePressed={setTranslatePressed}
+          developerMode={developerMode}
+          setDeveloperMode={setDeveloperMode}
         />
       )}
       {activeTab === 1 && (
         <VocabularyModule 
-          vocabularyList={vocabularyList} 
+          vocabularyList={vocabularyList}
           setVocabularyList={setVocabularyList}
           username={username}
           currentTranslationUrl={currentTranslationUrl}
+          developerMode={developerMode}
         />
       )}
     </Container>
