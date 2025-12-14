@@ -1,3 +1,10 @@
+/**
+ * AWS Cognito Configuration
+ * Note: User Pool ID and Client ID are safe to expose in public code
+ * They are designed to be used in client-side applications.
+ * For your project, adapt the configuration to your needs.
+ * 
+ */
 import { Amplify } from 'aws-amplify';
 
 const cognitoConfig = {
