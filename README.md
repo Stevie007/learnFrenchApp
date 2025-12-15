@@ -27,7 +27,7 @@ The French learning app consists of two separate repositories:
 - **Backend**: AWS Lambda functions for text processing, translation, and vocabulary management
 
 📋 **For overall architecture and system explanation**, see the backend repository:  
-[https://github.com/Stevie007/learnFrenchAppBackend/blob/main/README.md](https://github.com/Stevie007/learnFrenchAppBackend/blob/main/README.md)
+[https://github.com/Stevie007/learnFrenchAppBackend/blob/main/README.md](https://github.com/Stevie007/learnFrenchAppBackend/)
 
 ### Frontend Features
 
