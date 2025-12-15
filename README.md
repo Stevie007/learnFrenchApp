@@ -19,6 +19,18 @@
 
 ---
 ## Overview
+
+**This repository contains the frontend SPA (Single Page Application) only.**
+
+The French learning app consists of two separate repositories:
+- **Frontend (this repo)**: React SPA with AWS Cognito authentication
+- **Backend**: AWS Lambda functions for text processing, translation, and vocabulary management
+
+📋 **For overall architecture and system explanation**, see the backend repository:  
+[https://github.com/Stevie007/learnFrenchAppBackend/blob/main/README.md](https://github.com/Stevie007/learnFrenchAppBackend/blob/main/README.md)
+
+### Frontend Features
+
 A web application for learning French vocabulary through text translation and audio generation. Built with React, AWS Cognito authentication, and AWS Lambda backend services.
 
 ## Features
