@@ -23,7 +23,9 @@ function getHeaders(idToken) {
  */
 export async function getVocabulary(userid, vocID, idToken = null) {
   try {
-    const headers = {};
+    const headers = {
+      'Content-Type': 'application/json',
+    };
     if (idToken) {
       headers['Authorization'] = `Bearer ${idToken}`;
     }
@@ -50,7 +52,9 @@ export async function getVocabulary(userid, vocID, idToken = null) {
  */
 export async function getVocabularies(userid, mode, count, idToken = null) {
   try {
-    const headers = {};
+    const headers = {
+      'Content-Type': 'application/json',
+    };
     if (idToken) {
       headers['Authorization'] = `Bearer ${idToken}`;
     }
@@ -138,7 +142,9 @@ export async function updateVocabulary(vocabularyData, idToken = null) {
  */
 export async function deleteVocabulary(userid, vocID, idToken = null) {
   try {
-    const headers = {};
+    const headers = {
+      'Content-Type': 'application/json',
+    };
     if (idToken) {
       headers['Authorization'] = `Bearer ${idToken}`;
     }

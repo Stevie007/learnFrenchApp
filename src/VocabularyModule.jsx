@@ -224,8 +224,7 @@ function VocabularyModule({ vocabularyList, setVocabularyList, username, current
     
     try {
       // Call backend API with filter and count parameters
-      const response = await getVocabularies(username || 'unknown', filterOption, countValue);
-      
+      const response = await getVocabularies(username || 'unknown', filterOption, countValue, tokens?.idToken);      
       if (response.success) {
         setVocabularyList(response.data);
         localStorage.setItem('learnFrenchVocabulary', JSON.stringify(response.data));
