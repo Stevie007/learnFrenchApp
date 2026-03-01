@@ -9,12 +9,16 @@
 - [Features](#features)
 - [License](#license)
 - [Configuration Guide](#configuration-guide)
-  - [Environment Variables (.env.local)](#environment-variables-envlocal)
+   - [Environment Variables (.env.local / .env.prod)](#environment-variables-envlocal--envprod)
   - [AWS Cognito Configuration](#aws-cognito-configuration-srccognitoconfigjs)
   - [AWS Amplify Deployment URLs](#aws-amplify-deployment-urls)
   - [Setup Steps for Fork/Clone](#setup-steps-for-forkclone)
 - [Possible Next Steps](#possible-next-steps)
 - [Deployment](#deployment)
+   - [One-Time Setup (S3/CF/Function/Cognito)](#one-time-setup-s3cffunctioncognito)
+   - [Regular Deploy (AWS CLI)](#regular-deploy-aws-cli)
+   - [Verification](#verification)
+   - [GitHub CI/CD (Reserved)](#github-cicd-reserved)
 - [React + Vite](#react--vite---update)
 
 ---
@@ -52,9 +56,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 To run this application with your own AWS infrastructure, you need to configure the following parameters:
 
-## Environment Variables (.env.local)
+## Environment Variables (.env.local / .env.prod)
 
-Create a `.env.local` file in the project root with these variables:
+The app loads environment variables with this precedence:
+- Use `.env.prod` if it exists
+- Otherwise use `.env.local` if it exists
+- Then apply process environment variables (e.g. AWS Amplify) and overwrite values from `.env*`
+
+Add one of those files in the project root with these variables:
 
 | Variable | Purpose | Example Value | Required |
 |----------|---------|---------------|----------|
@@ -100,10 +109,12 @@ If deploying to AWS Amplify, update the production URLs in:
    - See backend repository for Lambda implementations
    - Deploy 4 Lambda functions with Function URLs enabled
    - Enable CORS on Lambda Function URLs
-   - Copy Lambda URLs to `.env.local`
+   - Copy Lambda URLs to `.env.local` for local development
 
 3. **Update Configuration Files**
-   - Create `.env.local` with your Lambda URLs
+   - Create `.env.local` with your Lambda URLs for local dev
+   - Optionally create `.env.prod` for S3 deployment defaults (takes precedence over `.env.local`)
+   - In AWS Amplify, configured environment variables override `.env*` values
    - Edit `src/cognitoConfig.js` with your Cognito details
    - Update callback URLs for your domain
 
@@ -136,14 +147,83 @@ If deploying to AWS Amplify, update the production URLs in:
     - backend
 
 # Deployment
-Take care with CORS - configure in Amplify OR in code.
+This deployment mode hosts the main website at `/` and the SPA at `/app/` in the same S3 bucket behind CloudFront.
 
-I had a running config running for some hours (CORS in code, not Amplify), 
-and 5 min later I received a CORS error.
+## One-Time Setup (S3/CF/Function/Cognito)
 
-So I decided for CORS in Amplify and NOT in code. 
-If you run into challenges check both, and check http header parameter, 
-exactly ONE cors rule should appear, not zero, and not more than one.
+| Area | Setting | Value |
+|---|---|---|
+| SPA location | S3 prefix | `app/` |
+| CloudFront behavior | Path pattern | `/app/*` (higher priority than `*`) |
+| CloudFront behavior | Origin | Existing S3 origin (same bucket) |
+| CloudFront behavior | Function | Viewer Request function from `deployment/cloudfront.path.js` |
+| Cognito app client | Callback URL | `https://<your-domain>/app/callback` |
+| Cognito app client | Sign-out URL | `https://<your-domain>/app` |
+
+Notes:
+- Deep-link routing is handled by the CloudFront Function rewrite (`/app/<route>` → `/app/index.html`), while real files (for example `/app/assets/*.js`) are passed through.
+- CORS should be configured in one place only.
+
+## Regular Deploy (AWS CLI)
+
+Build for subpath `/app/`:
+
+```bash
+npm run build -- --base=/app/
+```
+
+Deploy from WSL/Linux shell (copy/paste):
+
+```bash
+export BUCKET="<bucket-name>"
+export PREFIX="app"
+export DIST="/mnt/c/025_DEV/Repos-2025-11/learnFrench/learnFrenchWebApp/dist"
+export CF_DISTRIBUTION_ID="<distribution-id>"
+
+# 1) Cache immutable hashed assets for 1 year
+aws s3 sync "$DIST/assets/" "s3://$BUCKET/$PREFIX/assets/" --delete --cache-control "public,max-age=31536000,immutable"
+
+# 2) Upload all other files with no-cache
+aws s3 sync "$DIST/" "s3://$BUCKET/$PREFIX/" --delete --exclude "assets/*" --cache-control "no-cache,no-store,must-revalidate"
+
+# 3) Ensure index.html metadata is explicit no-cache
+aws s3 cp "$DIST/index.html" "s3://$BUCKET/$PREFIX/index.html" --cache-control "no-cache,no-store,must-revalidate" --content-type "text/html; charset=utf-8"
+
+# 4) Invalidate SPA path in CloudFront
+aws cloudfront create-invalidation --distribution-id "$CF_DISTRIBUTION_ID" --paths "/app/*"
+```
+
+## Verification
+
+| Check | Expected |
+|---|---|
+| `https://<your-domain>/app/` | App shell renders |
+| `https://<your-domain>/app/login` | Route loads (including refresh) |
+| `https://<your-domain>/app/assets/<file>.js` | HTTP 200 |
+| Login button | Redirects to Cognito Hosted UI |
+
+## GitHub CI/CD (Reserved)
+
+Workflow file: `.github/workflows/deploy-s3-cf.yml`
+
+| Input | Value |
+|---|---|
+| Trigger | `workflow_dispatch` and push to `main` |
+| Build | `npm ci` + `npm run build -- --base=/app/` |
+| Deploy target | `s3://landing-page-sn-itx/app/` |
+| Invalidation | `ENXT5WKR62Q6J` with path `/app/*` |
+
+Required GitHub secrets:
+- `AWS_CF-DEPL-PROD-KEY`
+- `AWS_CF-DEPL-PROD-SEC`
+
+Recommended GitHub variables:
+- `S3_BUCKET_NAME`
+- `CF_DISTRIBUTION_ID`
+- `SITE_URL`
+
+Optional next step:
+- Replace hardcoded env values in the workflow with repository/environment variables if you want multi-environment deploys.
 
 
 # React + Vite - Update

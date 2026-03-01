@@ -1,0 +1,78 @@
+name: Deploy SPA to S3 + CloudFront
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: eu-north-1
+  BUCKET: ${{ vars.S3_BUCKET_NAME || 'landing-page-sn-itx' }}
+  PREFIX: app
+  BASE_PATH: /app/
+  CF_DISTRIBUTION_ID: ${{ vars.CF_DISTRIBUTION_ID || 'ENXT5WKR62Q6J' }}
+  SITE_URL: ${{ vars.SITE_URL || 'https://my.demo-playground.de' }}
+
+jobs:
+  deploy:
+    name: Build and deploy SPA
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build SPA for subpath
+        run: npm run build -- --base=${{ env.BASE_PATH }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets['AWS_CF-DEPL-PROD-KEY'] }}
+          aws-secret-access-key: ${{ secrets['AWS_CF-DEPL-PROD-SEC'] }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload immutable assets
+        run: |
+          aws s3 sync dist/assets/ s3://${BUCKET}/${PREFIX}/assets/ \
+            --delete \
+            --cache-control "public,max-age=31536000,immutable"
+
+      - name: Upload non-asset files
+        run: |
+          aws s3 sync dist/ s3://${BUCKET}/${PREFIX}/ \
+            --delete \
+            --exclude "assets/*" \
+            --cache-control "no-cache,no-store,must-revalidate"
+
+      - name: Upload index.html with explicit metadata
+        run: |
+          aws s3 cp dist/index.html s3://${BUCKET}/${PREFIX}/index.html \
+            --cache-control "no-cache,no-store,must-revalidate" \
+            --content-type "text/html; charset=utf-8"
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${CF_DISTRIBUTION_ID}" \
+            --paths "/app/*"
+
+      - name: Smoke check
+        run: |
+          sleep 10
+          curl -I "${SITE_URL}/app/"
+          curl -I "${SITE_URL}/app/index.html"
