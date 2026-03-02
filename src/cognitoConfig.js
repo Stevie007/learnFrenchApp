@@ -10,7 +10,7 @@ import { Amplify } from 'aws-amplify';
 const basePath = normalizeBasePath(import.meta.env.BASE_URL || '/');
 const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : null;
 const runtimeRedirectSignIn = runtimeOrigin ? `${runtimeOrigin}${basePath}callback` : null;
-const runtimeRedirectSignOut = runtimeOrigin ? `${runtimeOrigin}${basePath.slice(0, -1)}` : null;
+const runtimeRedirectSignOut = runtimeOrigin ? `${runtimeOrigin}${basePath}login` : null;
 
 const redirectSignIn = uniqueUrls([
   runtimeRedirectSignIn,
@@ -20,8 +20,8 @@ const redirectSignIn = uniqueUrls([
 
 const redirectSignOut = uniqueUrls([
   runtimeRedirectSignOut,
-  'http://localhost:5173',
-  'http://localhost:5174',
+  'http://localhost:5173/login',
+  'http://localhost:5174/login',
 ]);
 
 const cognitoConfig = {
