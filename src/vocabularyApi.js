@@ -1,4 +1,5 @@
 // Vocabulary API helper functions
+import { fetchAuthSession } from 'aws-amplify/auth';
 
 // Get API base URL from environment
 const API_BASE_URL = import.meta.env.VITE_BACKEND_VOCABULARY_API;
@@ -18,17 +19,22 @@ function getHeaders(idToken) {
   return headers;
 }
 
+async function resolveIdToken(fallbackToken = null) {
+  try {
+    const session = await fetchAuthSession();
+    return session?.tokens?.idToken?.toString() || fallbackToken;
+  } catch {
+    return fallbackToken;
+  }
+}
+
 /**
  * Get single vocabulary by vocID
  */
 export async function getVocabulary(userid, vocID, idToken = null) {
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-    };
-    if (idToken) {
-      headers['Authorization'] = `Bearer ${idToken}`;
-    }
+    const freshIdToken = await resolveIdToken(idToken);
+    const headers = getHeaders(freshIdToken);
     
     const response = await fetch(`${API_BASE_URL}/vocabulary?userid=${userid}&vocID=${vocID}`, {
       headers: headers
@@ -52,12 +58,8 @@ export async function getVocabulary(userid, vocID, idToken = null) {
  */
 export async function getVocabularies(userid, mode, count, idToken = null) {
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-    };
-    if (idToken) {
-      headers['Authorization'] = `Bearer ${idToken}`;
-    }
+    const freshIdToken = await resolveIdToken(idToken);
+    const headers = getHeaders(freshIdToken);
     
     const countParam = count === '-' ? '' : `&count=${count}`;
     const response = await fetch(`${API_BASE_URL}/vocabularies?userid=${userid}&mode=${mode}${countParam}`, {
@@ -80,9 +82,10 @@ export async function getVocabularies(userid, mode, count, idToken = null) {
  */
 export async function createVocabulary(vocabularyData, idToken = null) {
   try {
+    const freshIdToken = await resolveIdToken(idToken);
     const response = await fetch(`${API_BASE_URL}/vocabulary`, {
       method: 'POST',
-      headers: getHeaders(idToken),
+      headers: getHeaders(freshIdToken),
       body: JSON.stringify({
         userid: vocabularyData.userid,
         textFr: vocabularyData.textFr,
@@ -109,9 +112,10 @@ export async function createVocabulary(vocabularyData, idToken = null) {
  */
 export async function updateVocabulary(vocabularyData, idToken = null) {
   try {
+    const freshIdToken = await resolveIdToken(idToken);
     const response = await fetch(`${API_BASE_URL}/vocabulary`, {
       method: 'PUT',
-      headers: getHeaders(idToken),
+      headers: getHeaders(freshIdToken),
       body: JSON.stringify({
         userid: vocabularyData.userid,
         vocID: vocabularyData.vocID,
@@ -142,12 +146,8 @@ export async function updateVocabulary(vocabularyData, idToken = null) {
  */
 export async function deleteVocabulary(userid, vocID, idToken = null) {
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-    };
-    if (idToken) {
-      headers['Authorization'] = `Bearer ${idToken}`;
-    }
+    const freshIdToken = await resolveIdToken(idToken);
+    const headers = getHeaders(freshIdToken);
     
     const response = await fetch(`${API_BASE_URL}/vocabulary?userid=${userid}&vocID=${vocID}`, {
       method: 'DELETE',

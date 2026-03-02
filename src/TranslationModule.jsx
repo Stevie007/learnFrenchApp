@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TextField, Button, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Snackbar, Switch, FormControlLabel, RadioGroup, Radio, FormLabel, CircularProgress } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { fetchAuthSession } from 'aws-amplify/auth';
 import { createVocabulary } from './vocabularyApi';
 import { useTranslation } from './locales/i18n';
 import { useAuth } from './AuthContext';
@@ -16,31 +17,40 @@ const API_URL_GET_TEXT_FROM_URL = import.meta.env.VITE_BACKEND_GET_TEXT_FROM_URL
 const API_URL_TRANSLATE_VOCAB = import.meta.env.VITE_BACKEND_TRANSLATE_VOCAB;
 const API_URL_GET_AUDIO_FOR_TEXT = import.meta.env.VITE_BACKEND_GET_AUDIO_FOR_TEXT;
 
-function backendGetTextFromUrl(url, payload, idToken) {
+async function resolveIdToken(fallbackToken = null) {
+  try {
+    const session = await fetchAuthSession();
+    return session?.tokens?.idToken?.toString() || fallbackToken;
+  } catch {
+    return fallbackToken;
+  }
+}
+
+async function backendGetTextFromUrl(url, payload, idToken) {
+  const freshIdToken = await resolveIdToken(idToken);
   const headers = {
     'Content-Type': 'text/plain',
   };
   
-  if (idToken) {
-    headers['Authorization'] = `Bearer ${idToken}`;
+  if (freshIdToken) {
+    headers['Authorization'] = `Bearer ${freshIdToken}`;
   }
   
-  return fetch(url, {
+  const response = await fetch(url, {
     method: 'POST',
     headers: headers,
     body: payload.text,
-  }).then(response => {
-    return (async () => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok: ' + response.statusText);
-      }
-      const text = await response.text();
-      return text;
-    })();
   });
+
+  if (!response.ok) {
+    throw new Error('Network response was not ok: ' + response.statusText);
+  }
+
+  const text = await response.text();
+  return text;
 }
 
-function backendGetAudio(url, payload, idToken) {
+async function backendGetAudio(url, payload, idToken) {
   let payloadText = payload.text;
   
   if (payloadText.length > MAX_TEXT_TO_AUDIO_LENGTH) {
@@ -49,25 +59,26 @@ function backendGetAudio(url, payload, idToken) {
     payloadText = payloadText.substring(0, MAX_TEXT_TO_AUDIO_LENGTH - warningMsg.length) + warningMsg;
   }
   
+  const freshIdToken = await resolveIdToken(idToken);
   const headers = {
     'Content-Type': 'text/plain',
   };
   
-  if (idToken) {
-    headers['Authorization'] = `Bearer ${idToken}`;
+  if (freshIdToken) {
+    headers['Authorization'] = `Bearer ${freshIdToken}`;
   }
   
-  return fetch(url, {
+  const response = await fetch(url, {
     method: 'POST',
     headers: headers,
     body: payloadText,
-  }).then(async (response) => {
-    if (!response.ok) {
-      throw new Error('Network response was not ok: ' + response.statusText);
-    }
-    const blob = await response.blob();
-    return URL.createObjectURL(blob);
   });
+
+  if (!response.ok) {
+    throw new Error('Network response was not ok: ' + response.statusText);
+  }
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
 }
 
 function TranslationModule({ onUrlChange, input, setInput, result, setResult, translation, setTranslation, translationTripple, setTranslationTripple, audioUrl, setAudioUrl, vocabularyList, setVocabularyList, username, addedVocabIndex, setAddedVocabIndex, translatePressed, setTranslatePressed, developerMode, setDeveloperMode }) {
