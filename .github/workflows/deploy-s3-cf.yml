@@ -2,28 +2,38 @@ name: Deploy SPA to S3 + CloudFront
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 permissions:
   contents: read
 
+# Global environment variables (can be overridden by job-level env)
 env:
   AWS_REGION: eu-north-1
-  BUCKET: ${{ vars.S3_BUCKET_NAME || 'landing-page-sn-itx' }}
   PREFIX: app
   BASE_PATH: /app/
-  CF_DISTRIBUTION_ID: ${{ vars.CF_DISTRIBUTION_ID || 'ENXT5WKR62Q6J' }}
-  SITE_URL: ${{ vars.SITE_URL || 'https://my.demo-playground.de' }}
 
 jobs:
   deploy:
     name: Build and deploy SPA
     runs-on: ubuntu-latest
-    environment: production
+    # start with one environment
+    environment: PROD
+
+    # Environment variables specific to this job (can override global env)
+    env:
+      AWS_REGION: ${{ vars.V_AWS_REGION }}
+      BUCKET: ${{ vars.V_S3_BUCKET_NAME }}
+      CF_DISTRIBUTION_ID: ${{ vars.V_CF_DISTRIBUTION_ID }}
+      SITE_URL: ${{ vars.V_SITE_URL }}
 
     steps:
+      - name: Debug Variables
+        run: |
+           echo "--- ALL SHELL VARS ---"
+           env | sort
+           echo "--- GITHUB VARS CONTEXT ---"
+           echo '${{ toJson(vars) }}'
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -42,8 +52,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets['AWS_CF-DEPL-PROD-KEY'] }}
-          aws-secret-access-key: ${{ secrets['AWS_CF-DEPL-PROD-SEC'] }}
+          aws-access-key-id: ${{ secrets['AWS_CF_DEPL_KEY'] }}
+          aws-secret-access-key: ${{ secrets['AWS_CF_DEPL_SEC'] }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Upload immutable assets
