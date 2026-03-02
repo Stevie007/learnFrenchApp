@@ -16,7 +16,8 @@ const de = {
     welcome: 'Willkommen',
     loginPrompt: 'Bitte melden Sie sich an, um fortzufahren',
     loginButton: 'Anmelden',
-    logoutButton: 'Abmelden'
+    logoutButton: 'Abmelden',
+    sessionExpired: 'Sitzung abgelaufen. Bitte erneut anmelden.'
   },
 
   // TranslationModule.jsx

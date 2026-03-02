@@ -1,5 +1,5 @@
 // Vocabulary API helper functions
-import { fetchAuthSession } from 'aws-amplify/auth';
+import { authenticatedFetch } from './authFetch';
 
 // Get API base URL from environment
 const API_BASE_URL = import.meta.env.VITE_BACKEND_VOCABULARY_API;
@@ -19,26 +19,16 @@ function getHeaders(idToken) {
   return headers;
 }
 
-async function resolveIdToken(fallbackToken = null) {
-  try {
-    const session = await fetchAuthSession();
-    return session?.tokens?.idToken?.toString() || fallbackToken;
-  } catch {
-    return fallbackToken;
-  }
-}
-
 /**
  * Get single vocabulary by vocID
  */
 export async function getVocabulary(userid, vocID, idToken = null) {
   try {
-    const freshIdToken = await resolveIdToken(idToken);
-    const headers = getHeaders(freshIdToken);
+    const headers = getHeaders(idToken);
     
-    const response = await fetch(`${API_BASE_URL}/vocabulary?userid=${userid}&vocID=${vocID}`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/vocabulary?userid=${userid}&vocID=${vocID}`, {
       headers: headers
-    });
+    }, idToken);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -58,13 +48,12 @@ export async function getVocabulary(userid, vocID, idToken = null) {
  */
 export async function getVocabularies(userid, mode, count, idToken = null) {
   try {
-    const freshIdToken = await resolveIdToken(idToken);
-    const headers = getHeaders(freshIdToken);
+    const headers = getHeaders(idToken);
     
     const countParam = count === '-' ? '' : `&count=${count}`;
-    const response = await fetch(`${API_BASE_URL}/vocabularies?userid=${userid}&mode=${mode}${countParam}`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/vocabularies?userid=${userid}&mode=${mode}${countParam}`, {
       headers: headers
-    });
+    }, idToken);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -82,10 +71,9 @@ export async function getVocabularies(userid, mode, count, idToken = null) {
  */
 export async function createVocabulary(vocabularyData, idToken = null) {
   try {
-    const freshIdToken = await resolveIdToken(idToken);
-    const response = await fetch(`${API_BASE_URL}/vocabulary`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/vocabulary`, {
       method: 'POST',
-      headers: getHeaders(freshIdToken),
+      headers: getHeaders(idToken),
       body: JSON.stringify({
         userid: vocabularyData.userid,
         textFr: vocabularyData.textFr,
@@ -93,7 +81,7 @@ export async function createVocabulary(vocabularyData, idToken = null) {
         source: vocabularyData.source,
         tags: vocabularyData.tags
       })
-    });
+    }, idToken);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -112,10 +100,9 @@ export async function createVocabulary(vocabularyData, idToken = null) {
  */
 export async function updateVocabulary(vocabularyData, idToken = null) {
   try {
-    const freshIdToken = await resolveIdToken(idToken);
-    const response = await fetch(`${API_BASE_URL}/vocabulary`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/vocabulary`, {
       method: 'PUT',
-      headers: getHeaders(freshIdToken),
+      headers: getHeaders(idToken),
       body: JSON.stringify({
         userid: vocabularyData.userid,
         vocID: vocabularyData.vocID,
@@ -127,7 +114,7 @@ export async function updateVocabulary(vocabularyData, idToken = null) {
         lastReviewed: vocabularyData.lastReviewed,
         stage: vocabularyData.stage
       })
-    });
+    }, idToken);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -146,13 +133,12 @@ export async function updateVocabulary(vocabularyData, idToken = null) {
  */
 export async function deleteVocabulary(userid, vocID, idToken = null) {
   try {
-    const freshIdToken = await resolveIdToken(idToken);
-    const headers = getHeaders(freshIdToken);
+    const headers = getHeaders(idToken);
     
-    const response = await fetch(`${API_BASE_URL}/vocabulary?userid=${userid}&vocID=${vocID}`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/vocabulary?userid=${userid}&vocID=${vocID}`, {
       method: 'DELETE',
       headers: headers
-    });
+    }, idToken);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

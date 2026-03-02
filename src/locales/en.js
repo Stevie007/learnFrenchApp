@@ -16,7 +16,8 @@ const en = {
     welcome: 'Welcome',
     loginPrompt: 'Please sign in to continue',
     loginButton: 'Sign In',
-    logoutButton: 'Sign Out'
+    logoutButton: 'Sign Out',
+    sessionExpired: 'Session expired. Please sign in again.'
   },
 
   // TranslationModule.jsx
