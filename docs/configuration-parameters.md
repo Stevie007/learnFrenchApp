@@ -35,6 +35,11 @@ Update these fields in `src/cognitoConfig.js`:
 
 For production, ensure callback/signout URLs match your deployed domain paths (for SPA under `/app/`).
 
+## Amplify Hosting vs aws-amplify SDK
+
+- Amplify Hosting is optional and can be fully removed when deploying via S3 + CloudFront.
+- The npm package `aws-amplify` is still required in this project because the SPA uses it for Cognito OAuth login, token/session retrieval, and sign-out.
+
 ## GitHub Actions deployment variables
 
 Set in environment `PROD` (or your target env):

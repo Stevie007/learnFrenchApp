@@ -16,14 +16,12 @@ const redirectSignIn = uniqueUrls([
   runtimeRedirectSignIn,
   'http://localhost:5173/callback',
   'http://localhost:5174/callback',
-  'https://master.d2ni6r2bfyqagn.amplifyapp.com/callback',
 ]);
 
 const redirectSignOut = uniqueUrls([
   runtimeRedirectSignOut,
   'http://localhost:5173',
   'http://localhost:5174',
-  'https://master.d2ni6r2bfyqagn.amplifyapp.com',
 ]);
 
 const cognitoConfig = {
