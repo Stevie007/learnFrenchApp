@@ -2,36 +2,25 @@
 
 ## Prerequisites
 
-- Node.js 20+
-- npm 10+
-- AWS CLI v2 (for S3/CloudFront deployment)
-- WSL/Ubuntu shell recommended for deployment scripts
+| Tool | Version / Note |
+|---|---|
+| Node.js | 20+ |
+| npm | 10+ |
+| AWS CLI | v2 (for deployment) |
+| Shell | WSL/Ubuntu recommended |
 
-## Install dependencies
+## Setup Flow
 
-```bash
-npm install
-```
+| Step | Action |
+|---|---|
+| 1 | Install dependencies: `npm install` |
+| 2 | Create Cognito User Pool + App Client (Hosted UI) |
+| 3 | Deploy backend Lambda functions with Function URLs + CORS |
+| 4 | Create `.env.local` and set required `VITE_*` variables |
+| 5 | Update Cognito config in `src/cognitoConfig.js` |
+| 6 | Start app: `npm run dev` |
 
-## Backend prerequisites
-
-1. Create Cognito User Pool + App Client (Hosted UI).
-2. Deploy backend Lambda functions and enable Function URLs.
-3. Configure CORS for frontend origin.
-
-## Configure local environment
-
-1. Create `.env.local` in repo root.
-2. Add all required `VITE_*` backend URL variables (see [configuration-parameters.md](configuration-parameters.md)).
-3. Update Cognito settings in `src/cognitoConfig.js`.
-
-## Run locally
-
-```bash
-npm run dev
-```
-
-## Optional: create deploy IAM identity/policy
+## Optional: Create Deploy IAM Identity/Policy
 
 ```bash
 export BUCKET="<bucket-name>"
@@ -41,7 +30,8 @@ export PREFIX="app"
 ./deployment/crt-aws-account.sh
 ```
 
-Script output includes:
-- IAM user `FRENCH_APP_DEPL`
-- Managed policy `FrenchAppWebAppDeployPolicy`
-- Access key pair for GitHub secrets
+| Output | Value |
+|---|---|
+| IAM user | `FRENCH_APP_DEPL` |
+| Managed policy | `FrenchAppWebAppDeployPolicy` |
+| Credentials output | `AWS_CF_DEPL_KEY`, `AWS_CF_DEPL_SEC` |
